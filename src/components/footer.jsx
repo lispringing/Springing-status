@@ -36,7 +36,7 @@ const Footer = () => {
         <p>
           Copyright&nbsp;&copy;&nbsp;2022&nbsp;-&nbsp;{new Date().getFullYear()}
           &nbsp;
-          <CustomLink to="https://blog.happyking.top/about/" text="欢乐小王" />
+          <CustomLink to="https://blog.springing.top/about/" text="小春子" />
           {siteIcp ? (
             <React.Fragment>
               &nbsp;|&nbsp;
