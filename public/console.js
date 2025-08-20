@@ -1,4 +1,4 @@
-//console.clear();
+console.clear();//清空控制台
 var styleTitle1 = `
 font-size: 20px;
 font-weight: 600;
