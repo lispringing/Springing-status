@@ -31,7 +31,7 @@ const Footer = () => {
         <p>
           基于&nbsp;
           <CustomLink to="https://uptimerobot.com/" text="UptimeRobot" />
-          &nbsp;接口&nbsp;|&nbsp;由 Spring 强力驱动
+          &nbsp;接口&nbsp;|&nbsp;由 鲸鱼框架1.0 强力驱动
         </p>
         <p>
           Copyright&nbsp;&copy;&nbsp;2022&nbsp;-&nbsp;{new Date().getFullYear()}
