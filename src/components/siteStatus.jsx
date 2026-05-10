@@ -5,12 +5,58 @@ import { Tooltip, Button, Result } from "antd";
 import CustomLink from "@/components/customLink";
 
 const SiteStatus = ({ siteData, days, status }) => {
+  const panelStats = siteData
+    ? siteData.reduce(
+        (acc, site) => {
+          acc.siteCount += 1;
+          acc.totalUptime += Number(site.average) || 0;
+          if (site.responseTime > 0) {
+            acc.responseTotal += site.responseTime;
+            acc.responseCount += 1;
+          }
+          return acc;
+        },
+        {
+          siteCount: 0,
+          totalUptime: 0,
+          responseTotal: 0,
+          responseCount: 0,
+        }
+      )
+    : null;
+
+  const totalUptimeRate =
+    panelStats && panelStats.siteCount > 0
+      ? formatNumber(panelStats.totalUptime / panelStats.siteCount)
+      : "0";
+
+  const averageResponse =
+    panelStats && panelStats.responseCount > 0
+      ? Math.round(panelStats.responseTotal / panelStats.responseCount)
+      : null;
+
   return (
     <SwitchTransition mode="out-in">
       <CSSTransition key={status.siteState} classNames="fade" timeout={500}>
         {status.siteState !== "wrong" ? (
           siteData ? (
             <div className="sites">
+              <div className="panel-overview">
+                <div className="stat-card">
+                  <div className="label">站点总数</div>
+                  <div className="value">{panelStats.siteCount}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="label">总在线率</div>
+                  <div className="value">{totalUptimeRate}%</div>
+                </div>
+                <div className="stat-card">
+                  <div className="label">平均响应</div>
+                  <div className="value">
+                    {averageResponse === null ? "暂无数据" : `${averageResponse} ms`}
+                  </div>
+                </div>
+              </div>
               {siteData.map((site) => (
                 <div
                   key={site.id}

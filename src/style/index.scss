@@ -192,6 +192,35 @@ body {
         }
         .sites {
           width: 100%;
+          .panel-overview {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            padding: 18px 20px;
+            border-bottom: 1px solid #e6e7e8;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+            .stat-card {
+              border-radius: 12px;
+              padding: 14px 16px;
+              background: #ffffff;
+              border: 1px solid #e8edf3;
+              box-shadow: 0 4px 16px #0088ff12;
+              .label {
+                font-size: 13px;
+                color: $secondary-color;
+                margin-bottom: 8px;
+              }
+              .value {
+                font-size: 24px;
+                font-weight: 700;
+                color: #1f2d3d;
+                line-height: 1.1;
+              }
+            }
+            @media (max-width: 768px) {
+              grid-template-columns: 1fr;
+            }
+          }
           .site {
             padding: 30px;
             border-bottom: 1px solid #e6e7e8;
