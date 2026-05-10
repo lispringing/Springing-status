@@ -180,6 +180,7 @@ body {
         justify-content: center;
         min-height: 200px;
         border-radius: 16px;
+        overflow: hidden;
         background-color: $main-background;
         box-shadow: 0 10px 30px #0000001a;
         .loading {
@@ -197,6 +198,7 @@ body {
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 12px;
             padding: 18px 20px;
+            border-radius: 16px 16px 0 0;
             border-bottom: 1px solid #e6e7e8;
             background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
             .stat-card {
