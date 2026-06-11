@@ -1,5 +1,4 @@
 import { formatNumber } from "./timeTools";
-import axios from "axios";
 import dayjs from "dayjs";
 
 const REQUEST_TIMEOUT = 20000;
@@ -13,7 +12,7 @@ const CACHE_DURATION = 60;
  * @param {Object} status - mobx-status
  * @returns {Promise<Array>} - 处理后的监控数据
  */
-export const getSiteData = async (apikey, days, cache, status) => {
+export const getSiteData = async (days, cache, status) => {
   const dates = [];
   const today = dayjs(new Date().setHours(0, 0, 0, 0));
 
@@ -65,7 +64,6 @@ export const getSiteData = async (apikey, days, cache, status) => {
 
     // 准备请求数据的参数
     const postdata = {
-      api_key: apikey,
       format: "json",
       logs: 1,
       response_times: 1,
@@ -106,16 +104,32 @@ export const getSiteData = async (apikey, days, cache, status) => {
  * @returns {Promise<Object>} - 监控数据的响应
  */
 const getMonitorsData = async (postdata, status) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
   try {
-    const globalApi = import.meta.env.VITE_GLOBAL_API;
-    const response = await axios.post(globalApi, postdata, {
-      timeout: REQUEST_TIMEOUT,
+    const response = await fetch("/api/getMonitors", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(postdata),
+      signal: controller.signal,
     });
-    return response.data;
+
+    const result = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(result?.message || `Request failed: ${response.status}`);
+    }
+
+    return result;
   } catch (error) {
     console.error("获取监控数据时出错：", error);
     status.changeSiteState("wrong");
     throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
 };
 

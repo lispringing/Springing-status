@@ -13,18 +13,17 @@ const App = observer(() => {
 
   // 加载配置
   const siteName = import.meta.env.VITE_SITE_NAME;
-  const apiKey = import.meta.env.VITE_API_KEY;
   const countDays = import.meta.env.VITE_COUNT_DAYS;
 
   useEffect(() => {
     // 更改站点标题
     document.title = siteName;
     // 获取站点数据
-    getSiteData(apiKey, countDays, cache, status).then((res) => {
+    getSiteData(countDays, cache, status).then((res) => {
       console.log(res);
       setSiteData(res);
     });
-  }, [apiKey, countDays]);
+  }, [countDays]);
 
   return (
     <>
