@@ -1,5 +1,20 @@
 const DEFAULT_API_URL = "https://api.uptimerobot.com/v2/getMonitors";
 
+let envLoaded = false;
+
+const loadLocalEnv = async () => {
+  if (envLoaded) return;
+  envLoaded = true;
+
+  try {
+    const { loadEnv } = await import("vite");
+    const env = loadEnv(process.env.NODE_ENV || "development", process.cwd(), "");
+    Object.assign(process.env, env);
+  } catch {
+    // Ignore env loading failures in serverless runtimes.
+  }
+};
+
 const readJsonBody = async (req) => {
   if (req.body && typeof req.body === "object") return req.body;
 
@@ -24,12 +39,17 @@ export const handleGetMonitors = async (req, res) => {
   }
 
   try {
+    await loadLocalEnv();
+
     const apiKey = process.env.API_KEY || process.env.VITE_API_KEY;
     const apiUrl =
       process.env.API_URL || process.env.VITE_GLOBAL_API || DEFAULT_API_URL;
 
     if (!apiKey) {
-      sendJson(res, 500, { message: "Missing API_KEY" });
+      sendJson(res, 500, {
+        message: "Missing API_KEY",
+        hint: "Set API_KEY in the deployment platform or local .env file",
+      });
       return;
     }
 
