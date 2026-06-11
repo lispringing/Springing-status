@@ -1,17 +1,67 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
 const DEFAULT_API_URL = "https://api.uptimerobot.com/v2/getMonitors";
 
 let envLoaded = false;
+
+const parseEnvValue = (rawValue) => {
+  const value = rawValue.trim();
+  if (!value) return "";
+
+  const quote = value[0];
+  if (quote === '"' || quote === "'") {
+    let result = "";
+
+    for (let i = 1; i < value.length; i += 1) {
+      const char = value[i];
+      if (char === quote && value[i - 1] !== "\\") break;
+      result += char;
+    }
+
+    return result;
+  }
+
+  return value.split("#")[0].trim();
+};
+
+const applyEnvFile = async (filePath) => {
+  try {
+    const content = await readFile(filePath, "utf8");
+
+    for (const line of content.split(/\r?\n/u)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+
+      const separatorIndex = trimmed.indexOf("=");
+      if (separatorIndex === -1) continue;
+
+      const key = trimmed.slice(0, separatorIndex).trim();
+      if (!key || process.env[key]) continue;
+
+      const rawValue = trimmed.slice(separatorIndex + 1);
+      process.env[key] = parseEnvValue(rawValue);
+    }
+  } catch {
+    // Ignore missing local env files.
+  }
+};
 
 const loadLocalEnv = async () => {
   if (envLoaded) return;
   envLoaded = true;
 
-  try {
-    const { loadEnv } = await import("vite");
-    const env = loadEnv(process.env.NODE_ENV || "development", process.cwd(), "");
-    Object.assign(process.env, env);
-  } catch {
-    // Ignore env loading failures in serverless runtimes.
+  const mode = process.env.NODE_ENV || "development";
+  const root = process.cwd();
+  const envFiles = [
+    ".env",
+    ".env.local",
+    `.env.${mode}`,
+    `.env.${mode}.local`,
+  ];
+
+  for (const envFile of envFiles) {
+    await applyEnvFile(path.join(root, envFile));
   }
 };
 
