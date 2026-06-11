@@ -1,69 +1,58 @@
 import { formatNumber } from "./timeTools";
+import axios from "axios";
 import dayjs from "dayjs";
-
-const REQUEST_TIMEOUT = 20000;
-const CACHE_DURATION = 60;
 
 /**
  * 获取监控数据
- * @param {string} apikey - UptimeRobot 的 API 密钥
+ * @param {string} apikey - UptimeRobot的API密钥
  * @param {number} days - 获取的天数
  * @param {Object} cache - mobx-cache
  * @param {Object} status - mobx-status
  * @returns {Promise<Array>} - 处理后的监控数据
  */
-export const getSiteData = async (days, cache, status) => {
-  const dates = [];
-  const today = dayjs(new Date().setHours(0, 0, 0, 0));
-
-  // 生成日期范围数组
-  for (let d = 0; d < days; d++) {
-    dates.push(today.subtract(d, "day"));
-  }
-
-  // 生成自定义历史数据范围
-  const ranges = dates.map(
-    (date) => `${date.unix()}_${date.add(1, "day").unix()}`
-  );
-  const start = dates[dates.length - 1].unix();
-  const end = dates[0].add(1, "day").unix();
-  ranges.push(`${start}_${end}`);
-
-  const processAndUpdate = (monitors) => {
-    const processedData = dataProcessing(monitors, dates);
-    changeSite(processedData, status);
-    return processedData;
-  };
-
-  const useCache = (withDelay = false) => {
-    if (!cache.siteData?.data?.length) return null;
-
-    const { data, timestamp } = cache.siteData;
-    const currentTime = new Date().getTime();
-    const isFresh = currentTime - timestamp < CACHE_DURATION * 1000;
-
-    if (!isFresh && withDelay) return null;
-
-    const resolveCache = () => {
-      console.log("触发缓存");
-      return processAndUpdate(data);
-    };
-
-    if (!withDelay) return resolveCache();
-
-    return new Promise((resolve) => {
-      const delay = Math.floor(Math.random() * (1200 - 500 + 1)) + 500;
-      setTimeout(() => resolve(resolveCache()), delay);
-    });
-  };
-
+export const getSiteData = async (apikey, days, cache, status) => {
   try {
+    const dates = [];
+    const today = dayjs(new Date().setHours(0, 0, 0, 0));
+
+    // 生成日期范围数组
+    for (let d = 0; d < days; d++) {
+      dates.push(today.subtract(d, "day"));
+    }
+
+    // 生成自定义历史数据范围
+    const ranges = dates.map(
+      (date) => `${date.unix()}_${date.add(1, "day").unix()}`
+    );
+    const start = dates[dates.length - 1].unix();
+    const end = dates[0].add(1, "day").unix();
+    ranges.push(`${start}_${end}`);
+
+    // 缓存的有效期（秒）
+    const cacheDuration = 60;
+
     // 检查是否有可用缓存数据
-    const cachedData = useCache(true);
-    if (cachedData) return cachedData;
+    if (cache.siteData !== null) {
+      const { data, timestamp } = cache.siteData;
+      // 当前时间
+      const currentTime = new Date().getTime();
+      // 检查缓存是否在有效期内
+      if (currentTime - timestamp < cacheDuration * 1000) {
+        return new Promise((resolve) => {
+          const delay = Math.floor(Math.random() * (1200 - 500 + 1)) + 500;
+          setTimeout(() => {
+            const processedData = dataProcessing(data, dates);
+            console.log("触发缓存");
+            changeSite(processedData, status);
+            resolve(processedData);
+          }, delay);
+        });
+      }
+    }
 
     // 准备请求数据的参数
     const postdata = {
+      api_key: apikey,
       format: "json",
       logs: 1,
       response_times: 1,
@@ -75,26 +64,23 @@ export const getSiteData = async (days, cache, status) => {
 
     // 发送获取监控数据的请求
     const response = await getMonitorsData(postdata, status);
-    const monitors = Array.isArray(response?.monitors) ? response.monitors : [];
-
-    if (!monitors.length) {
-      throw new Error("接口未返回可用的 monitors 数据");
-    }
 
     // 储存数据到缓存
-    cache.changeSiteData({
-      data: monitors,
-      timestamp: new Date().getTime(),
-    });
+    if (response.monitors) {
+      const monitorsCache = {
+        data: response.monitors,
+        timestamp: new Date().getTime(),
+      };
+      cache.changeSiteData(monitorsCache);
+    }
 
-    // 处理监控数据并更新站点状态
-    return processAndUpdate(monitors);
+    // 处理监控数据
+    const processedData = dataProcessing(response.monitors, dates);
+    // 更新站点数据
+    changeSite(processedData, status);
+    return processedData;
   } catch (error) {
-    console.error("获取监控数据时出错：", error);
-    status.changeSiteState("wrong");
-
-    // 请求超时或接口异常时，尽量使用旧缓存维持页面可用。
-    return useCache(false) || [];
+    console.error("获取监控数据时出错：" + error);
   }
 };
 
@@ -104,32 +90,13 @@ export const getSiteData = async (days, cache, status) => {
  * @returns {Promise<Object>} - 监控数据的响应
  */
 const getMonitorsData = async (postdata, status) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
   try {
-    const response = await fetch("/api/getMonitors", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(postdata),
-      signal: controller.signal,
-    });
-
-    const result = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      throw new Error(result?.message || `Request failed: ${response.status}`);
-    }
-
-    return result;
+    const globalApi = import.meta.env.VITE_GLOBAL_API;
+    const response = await axios.post(globalApi, postdata, { timeout: 10000 });
+    return response.data;
   } catch (error) {
     console.error("获取监控数据时出错：", error);
     status.changeSiteState("wrong");
-    throw error;
-  } finally {
-    clearTimeout(timeoutId);
   }
 };
 
@@ -140,10 +107,8 @@ const getMonitorsData = async (postdata, status) => {
  * @returns {Array} - 处理后的数据
  */
 const dataProcessing = (data, dates) => {
-  if (!Array.isArray(data)) return [];
-
-  return data.map((monitor) => {
-    const ranges = (monitor.custom_uptime_ranges || "").split("-");
+  return data?.map((monitor) => {
+    const ranges = monitor.custom_uptime_ranges.split("-");
     const average = formatNumber(ranges.pop());
     const daily = [];
     const map = [];
@@ -168,17 +133,13 @@ const dataProcessing = (data, dates) => {
         const date = dayjs.unix(log.datetime).format("YYYYMMDD");
         total.duration += log.duration;
         total.times += 1;
-        const dailyItem = daily[map[date]];
-
-        if (dailyItem) {
-          dailyItem.down.duration += log.duration;
-          dailyItem.down.times += 1;
-        }
+        daily[map[date]].down.duration += log.duration;
+        daily[map[date]].down.times += 1;
       }
       return total;
     };
 
-    const total = (monitor.logs || []).reduce(calculateTotal, {
+    const total = monitor.logs.reduce(calculateTotal, {
       times: 0,
       duration: 0,
     });
@@ -196,6 +157,7 @@ const dataProcessing = (data, dates) => {
 
     if (monitor.status === 2) result.status = "ok";
     if (monitor.status === 9) result.status = "down";
+    // result.status = "down";
     return result;
   });
 };
@@ -207,21 +169,12 @@ const dataProcessing = (data, dates) => {
  */
 const changeSite = (data, status) => {
   try {
-    if (!data.length) {
-      status.changeSiteState("wrong");
-      return;
-    }
-
     const isAllStatusOk = data.every((item) => item.status === "ok");
     const isAnyStatusOk = data.some((item) => item.status === "ok");
 
     // 更改图标
     const faviconLink = document.querySelector('link[rel="shortcut icon"]');
-    if (faviconLink) {
-      faviconLink.href = isAllStatusOk
-        ? "./favicon.ico"
-        : "./favicon-down.ico";
-    }
+    faviconLink.href = isAllStatusOk ? "./favicon.ico" : "./favicon-down.ico";
 
     // 更改状态
     if (isAllStatusOk) {
@@ -233,6 +186,7 @@ const changeSite = (data, status) => {
     }
   } catch (error) {
     console.error("更改站点状态时发生错误：", error);
+    // 处理错误状态
     status.changeSiteState("error");
   }
 };
