@@ -1,0 +1,18 @@
+[Unit]
+Description=Debian Website Monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/debian-website-monitor
+Environment=MONITOR_HOST=0.0.0.0
+Environment=MONITOR_PORT=8080
+Environment=MONITOR_ADMIN_PASSWORD=change-this-password
+Environment=MONITOR_SESSION_SECRET=change-this-to-a-long-random-string
+ExecStart=/usr/bin/python3 /opt/debian-website-monitor/app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
