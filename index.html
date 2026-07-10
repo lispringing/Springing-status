@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>信号分析器</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Signal Lab</p>
+      <h1>信号分析器</h1>
+      <p class="credit-banner">made by 王健兴 202480502107 物242-1 老师 张伟 DSP课程报告作品</p>
+    </div>
+    <div class="header-actions">
+      <button id="btnImport" class="btn secondary" type="button">导入</button>
+      <button id="btnExportImg" class="btn secondary" type="button">导出图像</button>
+      <button id="btnExportData" class="btn secondary" type="button">导出数据</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar controls">
+      <section class="panel-block">
+        <div class="section-heading">
+          <span class="section-dot tone-green"></span>
+          <h2>信号源</h2>
+        </div>
+        <label class="field">
+          <span>类型</span>
+          <select id="sigType">
+            <option value="sine">正弦波</option>
+            <option value="square">方波</option>
+            <option value="triangle">三角波</option>
+            <option value="sawtooth">锯齿波</option>
+            <option value="noise">高斯白噪声</option>
+          </select>
+        </label>
+        <div class="field-grid">
+          <label class="field">
+            <span>频率 Hz</span>
+            <input type="number" id="freq" value="50" min="0.1" step="0.1">
+          </label>
+          <label class="field">
+            <span>幅度 V</span>
+            <input type="number" id="amp" value="1" min="0" step="0.1">
+          </label>
+        </div>
+        <label class="field">
+          <span>相位 rad</span>
+          <input type="number" id="phase" value="0" step="0.01">
+        </label>
+        <div class="field-grid">
+          <label class="field">
+            <span>采样率 Hz</span>
+            <input type="number" id="fs" value="1000" min="1" step="1">
+          </label>
+          <label class="field">
+            <span>采样点数</span>
+            <select id="fftSize">
+              <option value="256">256</option>
+              <option value="1024" selected>1024</option>
+              <option value="4096">4096</option>
+              <option value="16384">16384</option>
+              <option value="65536">65536</option>
+            </select>
+          </label>
+        </div>
+        <button class="btn primary wide" id="btnGenSig" type="button">生成信号</button>
+      </section>
+
+      <section class="panel-block">
+        <div class="section-heading">
+          <span class="section-dot tone-amber"></span>
+          <h2>频谱分析</h2>
+        </div>
+        <label class="field">
+          <span>窗函数</span>
+          <select id="winType">
+            <option value="rect">矩形窗</option>
+            <option value="hann">汉宁窗</option>
+            <option value="hamming" selected>汉明窗</option>
+            <option value="blackman">布莱克曼窗</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>显示模式</span>
+          <select id="specMode">
+            <option value="mag">线性幅度</option>
+            <option value="db" selected>dB 幅度</option>
+            <option value="phase">相位</option>
+          </select>
+        </label>
+        <label class="switch-row">
+          <input type="checkbox" id="singleSide" checked>
+          <span>单边谱</span>
+        </label>
+        <label class="switch-row">
+          <input type="checkbox" id="winCorrect" checked>
+          <span>幅值校正</span>
+        </label>
+      </section>
+
+      <section class="panel-block">
+        <div class="section-heading">
+          <span class="section-dot tone-pink"></span>
+          <h2>视图</h2>
+        </div>
+        <label class="switch-row">
+          <input type="checkbox" id="cursorDouble">
+          <span>双游标</span>
+        </label>
+        <button class="btn ghost wide" id="btnResetView" type="button">重置视图</button>
+      </section>
+    </aside>
+
+    <section class="chart-area">
+      <div class="chart-panel">
+        <div class="chart-title">
+          <div>
+            <p class="eyebrow">Time Domain</p>
+            <h2>时域波形</h2>
+          </div>
+          <span id="timeMeta" class="meta-pill">-</span>
+        </div>
+        <canvas id="canvasTime"></canvas>
+      </div>
+
+      <div class="chart-panel">
+        <div class="chart-title">
+          <div>
+            <p class="eyebrow">Frequency Domain</p>
+            <h2>频域频谱</h2>
+          </div>
+          <span id="freqMeta" class="meta-pill">-</span>
+        </div>
+        <canvas id="canvasFreq"></canvas>
+      </div>
+    </section>
+
+    <aside class="sidebar readouts">
+      <section class="panel-block compact">
+        <div class="section-heading">
+          <span class="section-dot tone-green"></span>
+          <h2>采样信息</h2>
+        </div>
+        <div class="stat-row"><span>采样率</span><strong id="infoSampleRate">1000 Hz</strong></div>
+        <div class="stat-row"><span>数据长度</span><strong id="infoDataLen">1024 点</strong></div>
+        <div class="stat-row"><span>时长</span><strong id="infoDuration">1.024 s</strong></div>
+      </section>
+
+      <section class="panel-block compact">
+        <div class="section-heading">
+          <span class="section-dot tone-amber"></span>
+          <h2>时域统计</h2>
+        </div>
+        <div class="stat-row"><span>最大值</span><strong id="statMax">-</strong></div>
+        <div class="stat-row"><span>最小值</span><strong id="statMin">-</strong></div>
+        <div class="stat-row"><span>均值</span><strong id="statMean">-</strong></div>
+        <div class="stat-row"><span>RMS</span><strong id="statRms">-</strong></div>
+        <div class="stat-row"><span>峰峰值</span><strong id="statPkPk">-</strong></div>
+        <div class="stat-row"><span>标准差</span><strong id="statStd">-</strong></div>
+      </section>
+
+      <section class="panel-block compact">
+        <div class="section-heading">
+          <span class="section-dot tone-pink"></span>
+          <h2>游标测量</h2>
+        </div>
+        <div class="stat-row"><span>游标 1 时间</span><strong id="curT1">-</strong></div>
+        <div class="stat-row"><span>游标 1 幅值</span><strong id="curA1">-</strong></div>
+        <div class="stat-row"><span>游标 2 时间</span><strong id="curT2">-</strong></div>
+        <div class="stat-row"><span>时间差</span><strong id="curTDiff">-</strong></div>
+        <div class="stat-row"><span>对应频率</span><strong id="curFreq">-</strong></div>
+      </section>
+    </aside>
+  </main>
+
+  <input type="file" id="fileInput" accept=".csv,.txt" hidden>
+  <script src="./app.js"></script>
+</body>
+</html>
