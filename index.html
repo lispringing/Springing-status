@@ -1,183 +1,569 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>信号分析器</title>
-  <link rel="stylesheet" href="./style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>缃戠珯鐩戞帶闈㈡澘</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --line: #d9e0ec;
+      --ok: #16803c;
+      --bad: #c72c41;
+      --warn: #a15c00;
+      --accent: #2563eb;
+      --accent-dark: #1748b5;
+      --shadow: 0 10px 28px rgba(24, 38, 71, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-width: 320px;
+    }
+
+    header {
+      background: #14213d;
+      color: #fff;
+      padding: 18px 22px;
+      border-bottom: 4px solid #f2b705;
+    }
+
+    header .wrap, main {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      color: #cbd5e1;
+      font-size: 13px;
+    }
+
+    main { padding: 18px 0 36px; }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .tabs {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .tab {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      color: #fff;
+      background: var(--accent);
+    }
+
+    .button, button {
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      padding: 9px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      min-height: 38px;
+    }
+
+    .button:hover, button:hover { background: var(--accent-dark); }
+    button.secondary {
+      background: #fff;
+      color: var(--accent);
+      border-color: var(--line);
+    }
+    button.secondary:hover { background: #eef4ff; }
+    button.danger {
+      background: #fff;
+      color: var(--bad);
+      border-color: #f1b8c2;
+    }
+    button.danger:hover { background: #fff0f3; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .span-4 { grid-column: span 4; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+    .metric {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #edf1f7;
+    }
+    .metric:last-child { border-bottom: 0; }
+    .metric strong { font-size: 20px; }
+
+    .bar {
+      height: 8px;
+      background: #e7edf6;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 7px;
+    }
+    .bar > i {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--accent);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #edf1f7;
+      text-align: left;
+      vertical-align: middle;
+      overflow-wrap: anywhere;
+      font-size: 14px;
+    }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 74px;
+      font-weight: 700;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      background: var(--warn);
+    }
+    .ok .dot { background: var(--ok); }
+    .bad .dot { background: var(--bad); }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .warn { color: var(--warn); }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr 120px 120px auto;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+    label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 5px; }
+    input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      min-height: 38px;
+      padding: 8px 10px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      min-height: 18px;
+      height: 18px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .notice {
+      min-height: 22px;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 820px) {
+      .span-4, .span-8 { grid-column: span 12; }
+      .form-row { grid-template-columns: 1fr; }
+      th:nth-child(4), td:nth-child(4),
+      th:nth-child(5), td:nth-child(5) { display: none; }
+      header .wrap, main { width: min(100% - 18px, 1180px); }
+    }
+  </style>
 </head>
 <body>
-  <header class="app-header">
-    <div>
-      <p class="eyebrow">Signal Lab</p>
-      <h1>信号分析器</h1>
-      <p class="credit-banner">made by 王健兴 202480502107 物242-1 老师 张炜 DSP课程报告作品</p>
-    </div>
-    <div class="header-actions">
-      <button id="btnImport" class="btn secondary" type="button">导入</button>
-      <button id="btnExportImg" class="btn secondary" type="button">导出图像</button>
-      <button id="btnExportData" class="btn secondary" type="button">导出数据</button>
+  <header>
+    <div class="wrap">
+      <h1>缃戠珯鐩戞帶闈㈡澘</h1>
+      <p id="subtitle">绛夊緟鏁版嵁鍒锋柊</p>
     </div>
   </header>
 
-  <main class="workspace">
-    <aside class="sidebar controls">
-      <section class="panel-block">
-        <div class="section-heading">
-          <span class="section-dot tone-green"></span>
-          <h2>信号源</h2>
-        </div>
-        <label class="field">
-          <span>类型</span>
-          <select id="sigType">
-            <option value="sine">正弦波</option>
-            <option value="square">方波</option>
-            <option value="triangle">三角波</option>
-            <option value="sawtooth">锯齿波</option>
-            <option value="noise">高斯白噪声</option>
-          </select>
-        </label>
-        <div class="field-grid">
-          <label class="field">
-            <span>频率 Hz</span>
-            <input type="number" id="freq" value="50" min="0.1" step="0.1">
-          </label>
-          <label class="field">
-            <span>幅度 V</span>
-            <input type="number" id="amp" value="1" min="0" step="0.1">
-          </label>
-        </div>
-        <label class="field">
-          <span>相位 rad</span>
-          <input type="number" id="phase" value="0" step="0.01">
-        </label>
-        <div class="field-grid">
-          <label class="field">
-            <span>采样率 Hz</span>
-            <input type="number" id="fs" value="1000" min="1" step="1">
-          </label>
-          <label class="field">
-            <span>采样点数</span>
-            <select id="fftSize">
-              <option value="256">256</option>
-              <option value="1024" selected>1024</option>
-              <option value="4096">4096</option>
-              <option value="16384">16384</option>
-              <option value="65536">65536</option>
-            </select>
-          </label>
-        </div>
-        <button class="btn primary wide" id="btnGenSig" type="button">生成信号</button>
-      </section>
+  <main>
+    <div class="toolbar">
+      <div class="tabs">
+        <button class="tab active" data-tab="dashboard">鐩戞帶</button>
+        <button class="tab" data-tab="admin">鍚庡彴閰嶇疆</button>
+      </div>
+      <div class="actions">
+        <button class="secondary" id="refreshBtn">鍒锋柊</button>
+        <button id="checkAllBtn">绔嬪嵆妫€娴?/button>
+      </div>
+    </div>
 
-      <section class="panel-block">
-        <div class="section-heading">
-          <span class="section-dot tone-amber"></span>
-          <h2>频谱分析</h2>
-        </div>
-        <label class="field">
-          <span>窗函数</span>
-          <select id="winType">
-            <option value="rect">矩形窗</option>
-            <option value="hann">汉宁窗</option>
-            <option value="hamming" selected>汉明窗</option>
-            <option value="blackman">布莱克曼窗</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>显示模式</span>
-          <select id="specMode">
-            <option value="mag">线性幅度</option>
-            <option value="db" selected>dB 幅度</option>
-            <option value="phase">相位</option>
-          </select>
-        </label>
-        <label class="switch-row">
-          <input type="checkbox" id="singleSide" checked>
-          <span>单边谱</span>
-        </label>
-        <label class="switch-row">
-          <input type="checkbox" id="winCorrect" checked>
-          <span>幅值校正</span>
-        </label>
-      </section>
-
-      <section class="panel-block">
-        <div class="section-heading">
-          <span class="section-dot tone-pink"></span>
-          <h2>视图</h2>
-        </div>
-        <label class="switch-row">
-          <input type="checkbox" id="cursorDouble">
-          <span>双游标</span>
-        </label>
-        <button class="btn ghost wide" id="btnResetView" type="button">重置视图</button>
-      </section>
-    </aside>
-
-    <section class="chart-area">
-      <div class="chart-panel">
-        <div class="chart-title">
-          <div>
-            <p class="eyebrow">Time Domain</p>
-            <h2>时域波形</h2>
-          </div>
-          <span id="timeMeta" class="meta-pill">-</span>
-        </div>
-        <canvas id="canvasTime"></canvas>
+    <section id="dashboard" class="grid">
+      <div class="panel span-8">
+        <h2>缃戠珯鐘舵€?/h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 22%">鍚嶇О</th>
+              <th>鍦板潃</th>
+              <th style="width: 95px">鐘舵€?/th>
+              <th style="width: 92px">HTTP</th>
+              <th style="width: 110px">鑰楁椂</th>
+              <th style="width: 150px">涓婃妫€娴?/th>
+            </tr>
+          </thead>
+          <tbody id="siteRows"></tbody>
+        </table>
       </div>
 
-      <div class="chart-panel">
-        <div class="chart-title">
-          <div>
-            <p class="eyebrow">Frequency Domain</p>
-            <h2>频域频谱</h2>
-          </div>
-          <span id="freqMeta" class="meta-pill">-</span>
-        </div>
-        <canvas id="canvasFreq"></canvas>
+      <div class="panel span-4">
+        <h2>鏈嶅姟鍣ㄧ姸鎬?/h2>
+        <div id="systemMetrics"></div>
+      </div>
+
+      <div class="panel span-12">
+        <h2>鏈€杩戦敊璇?/h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 180px">鏃堕棿</th>
+              <th style="width: 180px">缃戠珯</th>
+              <th>閿欒</th>
+            </tr>
+          </thead>
+          <tbody id="errorRows"></tbody>
+        </table>
       </div>
     </section>
 
-    <aside class="sidebar readouts">
-      <section class="panel-block compact">
-        <div class="section-heading">
-          <span class="section-dot tone-green"></span>
-          <h2>采样信息</h2>
+    <section id="admin" class="hidden">
+      <div class="panel">
+        <h2>鍚庡彴閰嶇疆</h2>
+        <div id="adminNotice" class="notice"></div>
+        <div id="loginBox" class="form-row">
+          <div>
+            <label>绠＄悊鍛樺瘑鐮?/label>
+            <input id="passwordInput" type="password" autocomplete="current-password" placeholder="榛樿 admin123">
+          </div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <button id="loginBtn">鐧诲綍</button>
         </div>
-        <div class="stat-row"><span>采样率</span><strong id="infoSampleRate">1000 Hz</strong></div>
-        <div class="stat-row"><span>数据长度</span><strong id="infoDataLen">1024 点</strong></div>
-        <div class="stat-row"><span>时长</span><strong id="infoDuration">1.024 s</strong></div>
-      </section>
 
-      <section class="panel-block compact">
-        <div class="section-heading">
-          <span class="section-dot tone-amber"></span>
-          <h2>时域统计</h2>
-        </div>
-        <div class="stat-row"><span>最大值</span><strong id="statMax">-</strong></div>
-        <div class="stat-row"><span>最小值</span><strong id="statMin">-</strong></div>
-        <div class="stat-row"><span>均值</span><strong id="statMean">-</strong></div>
-        <div class="stat-row"><span>RMS</span><strong id="statRms">-</strong></div>
-        <div class="stat-row"><span>峰峰值</span><strong id="statPkPk">-</strong></div>
-        <div class="stat-row"><span>标准差</span><strong id="statStd">-</strong></div>
-      </section>
+        <div id="configBox" class="hidden">
+          <div class="form-row">
+            <div>
+              <label>鍚嶇О</label>
+              <input id="nameInput" placeholder="渚嬪锛氬畼缃?>
+            </div>
+            <div>
+              <label>缃戝潃</label>
+              <input id="urlInput" placeholder="https://example.com">
+            </div>
+            <div>
+              <label>闂撮殧绉?/label>
+              <input id="intervalInput" type="number" min="10" value="60">
+            </div>
+            <div>
+              <label>鏈熸湜鐘舵€佺爜</label>
+              <input id="expectedInput" placeholder="200 鎴栫暀绌?>
+            </div>
+            <button id="addBtn">娣诲姞</button>
+          </div>
 
-      <section class="panel-block compact">
-        <div class="section-heading">
-          <span class="section-dot tone-pink"></span>
-          <h2>游标测量</h2>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 70px">鍚敤</th>
+                <th style="width: 18%">鍚嶇О</th>
+                <th>鍦板潃</th>
+                <th style="width: 100px">闂撮殧</th>
+                <th style="width: 110px">鐘舵€佺爜</th>
+                <th style="width: 145px">鎿嶄綔</th>
+              </tr>
+            </thead>
+            <tbody id="configRows"></tbody>
+          </table>
         </div>
-        <div class="stat-row"><span>游标 1 时间</span><strong id="curT1">-</strong></div>
-        <div class="stat-row"><span>游标 1 幅值</span><strong id="curA1">-</strong></div>
-        <div class="stat-row"><span>游标 2 时间</span><strong id="curT2">-</strong></div>
-        <div class="stat-row"><span>时间差</span><strong id="curTDiff">-</strong></div>
-        <div class="stat-row"><span>对应频率</span><strong id="curFreq">-</strong></div>
-      </section>
-    </aside>
+      </div>
+    </section>
   </main>
 
-  <input type="file" id="fileInput" accept=".csv,.txt" hidden>
-  <script src="./app.js"></script>
+  <script>
+    const state = { authenticated: false, sites: [], system: {}, errors: [] };
+    const $ = (id) => document.getElementById(id);
+
+    function fmtTime(value) {
+      if (!value) return "-";
+      return new Date(value * 1000).toLocaleString();
+    }
+
+    function fmtMs(value) {
+      if (value === null || value === undefined) return "-";
+      return `${value} ms`;
+    }
+
+    function pct(value) {
+      if (value === null || value === undefined || Number.isNaN(value)) return "-";
+      return `${Number(value).toFixed(1)}%`;
+    }
+
+    async function api(path, options = {}) {
+      const res = await fetch(path, {
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        ...options,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `璇锋眰澶辫触锛?{res.status}`);
+      return data;
+    }
+
+    function renderSites() {
+      const rows = state.sites.map((site) => {
+        const cls = site.last_ok === 1 ? "ok" : (site.last_ok === 0 ? "bad" : "warn");
+        const text = site.last_ok === 1 ? "姝ｅ父" : (site.last_ok === 0 ? "寮傚父" : "绛夊緟");
+        return `<tr>
+          <td><strong>${escapeHtml(site.name)}</strong></td>
+          <td><a href="${escapeAttr(site.url)}" target="_blank" rel="noreferrer">${escapeHtml(site.url)}</a></td>
+          <td><span class="status ${cls}"><i class="dot"></i>${text}</span></td>
+          <td>${site.last_status_code || "-"}</td>
+          <td>${fmtMs(site.last_latency_ms)}</td>
+          <td>${fmtTime(site.last_checked_at)}</td>
+        </tr>`;
+      }).join("");
+      $("siteRows").innerHTML = rows || `<tr><td colspan="6" class="muted">杩樻病鏈夐厤缃綉绔欙紝璇峰埌鍚庡彴閰嶇疆閲屾坊鍔犮€?/td></tr>`;
+
+      const ok = state.sites.filter(s => s.last_ok === 1).length;
+      const bad = state.sites.filter(s => s.last_ok === 0).length;
+      $("subtitle").textContent = `鍏?${state.sites.length} 涓珯鐐癸紝姝ｅ父 ${ok} 涓紝寮傚父 ${bad} 涓猔;
+    }
+
+    function renderSystem() {
+      const s = state.system || {};
+      const load = Array.isArray(s.loadavg) ? s.loadavg.map(x => Number(x).toFixed(2)).join(" / ") : "-";
+      const metrics = [
+        ["CPU", pct(s.cpu_percent), s.cpu_percent],
+        ["鍐呭瓨", `${pct(s.memory_percent)} 路 ${s.memory_used_mb || "-"} / ${s.memory_total_mb || "-"} MB`, s.memory_percent],
+        ["纾佺洏", `${pct(s.disk_percent)} 路 ${s.disk_used_gb || "-"} / ${s.disk_total_gb || "-"} GB`, s.disk_percent],
+        ["璐熻浇", load, null],
+        ["杩愯鏃堕棿", s.uptime || "-", null],
+      ];
+      $("systemMetrics").innerHTML = metrics.map(([name, value, bar]) => `
+        <div class="metric">
+          <div style="width:100%">
+            <div class="small muted">${name}</div>
+            <strong>${value}</strong>
+            ${bar === null || bar === undefined ? "" : `<div class="bar"><i style="width:${Math.max(0, Math.min(100, bar))}%"></i></div>`}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderErrors() {
+      const rows = state.errors.map((item) => `
+        <tr>
+          <td>${fmtTime(item.checked_at)}</td>
+          <td>${escapeHtml(item.name)}</td>
+          <td>${escapeHtml(item.error || "鏈煡閿欒")}</td>
+        </tr>
+      `).join("");
+      $("errorRows").innerHTML = rows || `<tr><td colspan="3" class="muted">鏆傛棤閿欒璁板綍銆?/td></tr>`;
+    }
+
+    function renderConfig() {
+      const rows = state.sites.map((site) => `
+        <tr>
+          <td><input id="cfg-enabled-${site.id}" type="checkbox" ${site.enabled ? "checked" : ""}></td>
+          <td><input id="cfg-name-${site.id}" value="${escapeAttr(site.name)}"></td>
+          <td><input id="cfg-url-${site.id}" value="${escapeAttr(site.url)}"></td>
+          <td><input id="cfg-interval-${site.id}" type="number" min="10" value="${site.interval_seconds}"></td>
+          <td><input id="cfg-expected-${site.id}" value="${site.expected_status || ""}" placeholder="2xx/3xx"></td>
+          <td>
+            <div class="actions">
+              <button class="secondary" onclick="saveSite(${site.id})">淇濆瓨</button>
+              <button class="danger" onclick="deleteSite(${site.id})">鍒犻櫎</button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+      $("configRows").innerHTML = rows || `<tr><td colspan="6" class="muted">鏆傛棤绔欑偣銆?/td></tr>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (m) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[m]));
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, "&#096;");
+    }
+
+    async function refresh() {
+      const data = await api("/api/status");
+      state.sites = data.sites || [];
+      state.system = data.system || {};
+      state.errors = data.errors || [];
+      renderSites();
+      renderSystem();
+      renderErrors();
+      renderConfig();
+    }
+
+    async function login() {
+      try {
+        await api("/api/login", {
+          method: "POST",
+          body: JSON.stringify({ password: $("passwordInput").value })
+        });
+        state.authenticated = true;
+        $("loginBox").classList.add("hidden");
+        $("configBox").classList.remove("hidden");
+        $("adminNotice").textContent = "宸茬櫥褰曪紝鍙互淇敼鐩戞帶閰嶇疆銆?;
+        $("passwordInput").value = "";
+        await refresh();
+      } catch (err) {
+        $("adminNotice").textContent = err.message;
+      }
+    }
+
+    async function addSite() {
+      const payload = {
+        name: $("nameInput").value.trim(),
+        url: $("urlInput").value.trim(),
+        interval_seconds: Number($("intervalInput").value || 60),
+        expected_status: $("expectedInput").value.trim() || null,
+      };
+      try {
+        await api("/api/sites", { method: "POST", body: JSON.stringify(payload) });
+        $("nameInput").value = "";
+        $("urlInput").value = "";
+        $("expectedInput").value = "";
+        $("adminNotice").textContent = "宸叉坊鍔狅紝鍚庡彴浼氳嚜鍔ㄥ紑濮嬫娴嬨€?;
+        await refresh();
+      } catch (err) {
+        $("adminNotice").textContent = err.message;
+      }
+    }
+
+    async function deleteSite(id) {
+      if (!confirm("纭畾鍒犻櫎杩欎釜绔欑偣鍚楋紵")) return;
+      await api(`/api/sites/${id}`, { method: "DELETE" });
+      await refresh();
+    }
+
+    async function saveSite(id) {
+      const payload = {
+        enabled: $(`cfg-enabled-${id}`).checked ? 1 : 0,
+        name: $(`cfg-name-${id}`).value.trim(),
+        url: $(`cfg-url-${id}`).value.trim(),
+        interval_seconds: Number($(`cfg-interval-${id}`).value || 60),
+        expected_status: $(`cfg-expected-${id}`).value.trim() || null,
+      };
+      try {
+        await api(`/api/sites/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+        $("adminNotice").textContent = "宸蹭繚瀛樸€?;
+        await refresh();
+      } catch (err) {
+        $("adminNotice").textContent = err.message;
+      }
+    }
+
+    async function checkAll() {
+      await api("/api/check-now", { method: "POST", body: "{}" });
+      await refresh();
+    }
+
+    document.querySelectorAll(".tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        ["dashboard", "admin"].forEach(id => $(id).classList.toggle("hidden", id !== btn.dataset.tab));
+      });
+    });
+
+    $("refreshBtn").addEventListener("click", () => refresh().catch(alert));
+    $("checkAllBtn").addEventListener("click", () => checkAll().catch(alert));
+    $("loginBtn").addEventListener("click", login);
+    $("addBtn").addEventListener("click", addSite);
+    $("passwordInput").addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
+
+    refresh().catch((err) => {
+      $("siteRows").innerHTML = `<tr><td colspan="6" class="bad">${escapeHtml(err.message)}</td></tr>`;
+    });
+    setInterval(() => refresh().catch(() => {}), 10000);
+  </script>
 </body>
 </html>
