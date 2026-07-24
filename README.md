@@ -1,114 +1,73 @@
-# Debian Website Monitor
+English | [简体中文](./README.zh-CN.md)
 
-一个不依赖 Docker 和第三方 Python 包的网站监控面板，适合老 i386 Debian 服务器。
+<div align="center">
+<h1>site-status</h1>
+<p>An online status panel based on UptimeRobot API</p>
+<br />
+<img src="https://img.shields.io/github/last-commit/imsyy/site-status" alt="last commit"/>
+<img src="https://img.shields.io/github/languages/code-size/imsyy/site-status" alt="code size"/>
+<img src="https://img.shields.io/github/stars/imsyy/site-status?style=full" alt="GitHub stars"/>
+<img src="https://img.shields.io/github/forks/imsyy/site-status?style=full&color=orange" alt="GitHub followers"/>
+<br />
+<br />
+<img src="https://s1.ax1x.com/2023/07/20/pCHnLLt.png" alt="demo"/>
+</div>
 
-功能：
+## 👀 Demo
 
-- 定期检测指定 HTTP/HTTPS 网站是否正常
-- 本地端口展示网站状态、HTTP 状态码、响应耗时和最近错误
-- 页面后台添加、启用、停用、删除监控站点
-- 显示 Linux 服务器 CPU、内存、磁盘、负载和运行时间
-- 配置和检测记录保存在本地 SQLite：`monitor.db`
+> Demo password: `123456`
 
-## 本地运行
+- [IMSYY-Site Monitoring](https://status.imsyy.top/)
 
-```bash
-python3 app.py --host 127.0.0.1 --port 8080
-```
+## 🎉 Features
 
-然后访问：
+- 🌍 Multi-platform deployment support
+- ✨ Elegant and smooth browsing experience
+- 🔐 Supports site password encryption (JWT + Hash)
+- 👀 Overall site status preview
+- ⏲️ Data auto-refresh
+- 📱 Mobile-friendly design
 
-```text
-http://127.0.0.1:8080
-```
+## Prerequisites
 
-后台默认密码：
+- You need to first add site monitors on [UptimeRobot](https://uptimerobot.com/dashboard) and get the `Read-Only API Key` from the `My Settings` or [API Management](https://dashboard.uptimerobot.com/integrations) page (Do not use the `Main API key`).
+- You can also use `Monitor-specific API keys` for individual monitors.
 
-```text
-admin123
-```
+## Deployment
 
-建议正式部署时修改密码：
+### Cloudflare
 
-```bash
-export MONITOR_ADMIN_PASSWORD='换成你的强密码'
-python3 app.py --host 0.0.0.0 --port 8080
-```
+This project is deployed by default using [Cloudflare Pages](https://pages.cloudflare.com/).
 
-## Debian 部署
+- `star` and `fork` this project 😘
+- You can use the new [NuxtHub](https://hub.nuxt.com/) to quickly deploy this project. If you have experience deploying on Vercel, the process is quite similar. Alternatively, you can use [Cloudflare Pages](https://pages.cloudflare.com/) for deployment.
+- Before moving on, make sure to configure the environment variables as detailed in the `.env.example` file. The `API_KEY` is a required field.
+- If everything goes smoothly, you should be able to see the project’s main page.
 
-假设项目放在：
+### Vercel
 
-```bash
-/opt/debian-website-monitor
-```
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/imsyy/site-status)
 
-创建目录并复制文件：
+- Click the button above to deploy.
+- Add the following environment variables (important):
 
-```bash
-sudo mkdir -p /opt/debian-website-monitor
-sudo cp app.py README.md /opt/debian-website-monitor/
-sudo chmod +x /opt/debian-website-monitor/app.py
-```
+  | **Variable Name**   | **Value** |
+  | ------------------- | --------- |
+  | DEPLOYMENT_PLATFORM | auto      |
+  | API_KEY             |           |
 
-直接启动：
+- All set!
 
-```bash
-cd /opt/debian-website-monitor
-MONITOR_ADMIN_PASSWORD='换成你的强密码' python3 app.py --host 0.0.0.0 --port 8080
-```
+### Other Hosting Platforms
 
-如果只想本机访问，保持 `--host 127.0.0.1`。如果要局域网或公网访问，用 `--host 0.0.0.0`，并在防火墙放行端口。
+For deployment guides, refer to the official documentation: [Deploying Nuxt Apps](https://nuxtjs.org.cn/deploy)
 
-## systemd 后台运行
+## Q & A
 
-复制服务文件：
+### How to Enable Site Encryption
 
-```bash
-sudo cp systemd/debian-website-monitor.service /etc/systemd/system/
-```
+Add the following environment variables: `SITE_PASSWORD` and `SITE_SECRET_KEY`. Both are required. The `SITE_PASSWORD` is the site password, and the `SITE_SECRET_KEY` is the encryption key, which you can choose freely.
 
-编辑服务文件里的密码和路径：
+## Thanks
 
-```bash
-sudo nano /etc/systemd/system/debian-website-monitor.service
-```
-
-启动并设置开机自启：
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now debian-website-monitor
-sudo systemctl status debian-website-monitor
-```
-
-查看日志：
-
-```bash
-journalctl -u debian-website-monitor -f
-```
-
-## 环境变量
-
-| 变量 | 默认值 | 说明 |
-| --- | --- | --- |
-| `MONITOR_HOST` | `127.0.0.1` | 默认监听地址 |
-| `MONITOR_PORT` | `8080` | 默认监听端口 |
-| `MONITOR_DB` | `./monitor.db` | SQLite 数据库路径 |
-| `MONITOR_ADMIN_PASSWORD` | `admin123` | 后台密码 |
-| `MONITOR_SESSION_SECRET` | 随机值 | 登录 Cookie 签名密钥 |
-| `MONITOR_CHECK_TIMEOUT` | `10` | 单次网站检测超时秒数 |
-
-## 说明
-
-默认判断规则：
-
-- 如果配置了期望状态码，例如 `200`，则只有该状态码算正常
-- 如果未配置期望状态码，则 `200` 到 `399` 算正常
-
-老 Debian 如果没有 `python3`：
-
-```bash
-sudo apt-get update
-sudo apt-get install python3
-```
+- [uptime-status](https://github.com/yb/uptime-status) inspired this project
