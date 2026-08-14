@@ -445,6 +445,32 @@ const closeOnClickOutside = (e) => {
 const toggleDowntimeList = (id) => { showDowntimeList.value = showDowntimeList.value === id ? null : id }
 const updateMobileState = () => { isMobile.value = window.innerWidth < 768 }
 
-onMounted(() => { document.addEventListener('click', closeOnClickOutside); window.addEventListener('resize', updateMobileState) })
-onUnmounted(() => { document.removeEventListener('click', closeOnClickOutside); window.removeEventListener('resize', updateMobileState); stopRtCountdown() })
+// 自动加载所有monitor的响应时间数据
+const loadAllResponseTimes = async () => {
+  if (!props.monitors?.length) return
+  for (const monitor of props.monitors) {
+    if (monitor.responseTimeStats) continue // 已加载则跳过
+    try {
+      const stats = await fetchMonitorResponseTime(monitor.id)
+      if (stats) {
+        const patched = patchResponseTimeStats(monitor, stats)
+        emit('update-monitor', patched)
+      }
+    } catch (e) {
+      // 忽略错误，不影响其他monitor的加载
+      if (isRateLimit(e)) break // 遇到限流则停止继续加载
+    }
+  }
+}
+
+onMounted(() => { 
+  document.addEventListener('click', closeOnClickOutside)
+  window.addEventListener('resize', updateMobileState)
+  loadAllResponseTimes()
+})
+onUnmounted(() => { 
+  document.removeEventListener('click', closeOnClickOutside)
+  window.removeEventListener('resize', updateMobileState)
+  stopRtCountdown() 
+})
 </script>
