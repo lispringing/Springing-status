@@ -60,7 +60,7 @@
 
       <!-- 卡片主体：统计数据和图表 -->
       <div class="space-y-3">
-        <!-- 响应时间、运行时间和监控类型统计卡片 -->
+        <!-- 响应时间、运行时间和状态时间线 一行三列 -->
         <div class="grid grid-cols-3 gap-3">
           <div class="inner-card relative cursor-pointer p-3" @click="openResponseTimeModal(monitor)">
             <Icon 
@@ -84,25 +84,14 @@
             </div>
           </div>
           <div class="inner-card p-3">
-            <div class="text-2xs text-gray-500 dark:text-gray-400 mb-0.5">{{ t('card.monitorType') || '监控类型' }}</div>
-            <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              {{ getMonitorType(monitor) }} / {{ Math.floor(monitor.interval / 60) }}m
+            <div class="h-8">
+              <Scatter v-if="chartOf(monitor).data" :data="chartOf(monitor).data" :options="chartOf(monitor).options" />
             </div>
-          </div>
-        </div>
-
-        <!-- 状态时间线图表 -->
-        <div class="inner-card p-3">
-          <!-- 时间线散点图 -->
-          <div class="h-10">
-            <Scatter v-if="chartOf(monitor).data" :data="chartOf(monitor).data" :options="chartOf(monitor).options" />
-          </div>
-          <div class="flex justify-between text-2xs text-gray-400 mt-1.5">
-            <span>{{ t('card.daysAgo') }}</span>
-            <span class="text-gray-500">
-              {{ getDowntimeStats(monitor) }}
-            </span>
-            <span>{{ t('card.today') }}</span>
+            <div class="flex justify-between text-2xs text-gray-400 mt-1">
+              <span>{{ t('card.daysAgo') }}</span>
+              <span class="text-gray-500">{{ getDowntimeStats(monitor) }}</span>
+              <span>{{ t('card.today') }}</span>
+            </div>
           </div>
         </div>
 
