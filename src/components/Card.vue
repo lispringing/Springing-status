@@ -96,13 +96,18 @@
             </div>
           </div>
           <div class="inner-card p-3">
-            <div class="h-8">
-              <Scatter v-if="chartOf(monitor).data" :data="chartOf(monitor).data" :options="chartOf(monitor).options" />
-            </div>
-            <div class="flex justify-between text-2xs text-gray-400 mt-1">
-              <span>{{ t('card.daysAgo') }}</span>
-              <span class="text-gray-500">{{ getDowntimeStats(monitor) }}</span>
-              <span>{{ t('card.today') }}</span>
+            <div class="flex flex-col gap-2">
+              <div class="flex gap-1 flex-wrap">
+                <div v-for="(value, index) in getUptimeData(monitor)" :key="index"
+                     :class="['w-4 h-4 rounded-sm transition-all hover:shadow-md cursor-pointer', getUptimeColor(value, monitor)]"
+                     :title="`${monitor.stats?.dailyUptimes?.[index] != null ? (monitor.stats.dailyUptimes[index].toFixed(2) + '%') : '无数据'}`"
+                />
+              </div>
+              <div class="flex justify-between text-2xs text-gray-400">
+                <span>{{ t('card.daysAgo') }}</span>
+                <span class="text-gray-500">{{ getDowntimeStats(monitor) }}</span>
+                <span>{{ t('card.today') }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -373,6 +378,33 @@ const getDowntimeStats = (m) => {
 
 const getIncidents = (m) => (m.stats?.incidents || []).slice(0, 15)
 const chartOf = (m) => getStatusChartConfig(m, dateRange.value, isMobile.value)
+
+// 获取30天的访问率数据
+const getUptimeData = (monitor) => {
+  const data = monitor.stats?.dailyUptimes || []
+  return Array.from({ length: 30 }, (_, i) => {
+    const value = data[i]
+    return { value, isBeforeCreation: false }
+  })
+}
+
+// 根据访问率获取对应的颜色类
+const getUptimeColor = (item, monitor) => {
+  const { value, isBeforeCreation } = item
+  if (isBeforeCreation || value === null || isNaN(value)) {
+    return 'bg-gray-200 dark:bg-gray-700'
+  }
+  if (value === 100) {
+    return 'bg-green-500 dark:bg-green-500'
+  }
+  if (value >= 99.9) {
+    return 'bg-green-400 dark:bg-green-400'
+  }
+  if (value >= 90) {
+    return 'bg-yellow-400 dark:bg-yellow-500'
+  }
+  return 'bg-red-500 dark:bg-red-500'
+}
 
 const showDowntimeList = ref(null)
 const showDowntimeModal = ref(null)
