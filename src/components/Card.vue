@@ -14,7 +14,7 @@
       class="flex flex-wrap gap-6"
       move-class="sort-move">
     <div v-for="monitor in sortedMonitors" :key="monitor.id"
-      class="sort-item w-full md:w-[calc(50%-0.75rem)]">
+      class="sort-item w-full">
     <div class="card-base animated-border p-6 rounded-2xl backdrop-blur-sm animate-fade"
          :class="cardBorderClass(monitor.status)"
          @mouseenter="$event.target.classList.add('hovered')"
