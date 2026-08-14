@@ -9,11 +9,12 @@ const CFG = {
 
 export const getChartColor = (value, isBeforeCreation, status) => {
   if (isBeforeCreation) return CFG.colors.gray
-  if (isMonitorWarning(status)) return CFG.colors.warning
   if (value === null || isNaN(value)) return CFG.colors.error
-  if (value === 0) return CFG.colors.error
-  return [{ min: 99.9, color: CFG.colors.success }, { min: 90, color: CFG.colors.warning }, { min: 0.1, color: CFG.colors.orange }]
-    .find((t) => value >= t.min)?.color || CFG.colors.orange
+  // 基于当日访问率来判断颜色，而不是网站当前状态
+  if (value === 100) return CFG.colors.success  // 100%则绿色
+  if (value >= 99.9) return CFG.colors.success  // 99.9%以上也算绿色
+  if (value >= 90) return CFG.colors.warning     // 90-99.9则黄色
+  return CFG.colors.error  // 低于90则红色
 }
 
 export const getStatusChartConfig = (monitor, dateRange, isMobile) => {
