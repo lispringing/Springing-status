@@ -1,5 +1,5 @@
 const API = 'https://api.uptimerobot.com/v3'
-const DAY30 = 30 * 24 * 60 * 60 * 1000
+const INCIDENT_LOOKBACK = 31 * 24 * 60 * 60 * 1000
 export const CACHE_TTL_MS = 5 * 60 * 1000
 
 export class RateLimitError extends Error {
@@ -58,7 +58,9 @@ function mergeIncidents(list, monitors) {
 export async function fetchMonitorStatus({ apiKey } = {}) {
   const key = keyOf({ apiKey })
   if (!key) throw new Error('缺少 API Key')
-  const since = new Date(Date.now() - DAY30).toISOString()
+  // One extra day keeps incidents that cross the first visible day available
+  // when the client splits downtime into 30 local calendar days.
+  const since = new Date(Date.now() - INCIDENT_LOOKBACK).toISOString()
   const [monitors, incidents] = await Promise.all([
     paginate(key, '/monitors?limit=200'),
     paginate(key, `/incidents?started_after=${encodeURIComponent(since)}`)

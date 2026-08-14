@@ -24,6 +24,8 @@ export default {
     last24Hours: 'Last 24 Hours',
     clickToLoad: 'Click for trend',
     avgUptime: 'Avg Uptime',
+    dailyUptime: 'Daily uptime over the last 30 days',
+    uptimeOnDate: '{date}: {value}',
     lastDays: 'Last {days} Days',
     downtimeRecords: 'Downtime Records',
     noRecentDowntime: 'No Recent Downtime',

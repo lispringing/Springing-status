@@ -24,6 +24,8 @@ export default {
     last24Hours: '最近24小时',
     clickToLoad: '点击查看趋势',
     avgUptime: '平均运行时间',
+    dailyUptime: '最近30天每日访问率',
+    uptimeOnDate: '{date}：{value}',
     lastDays: '最近{days}天',
     downtimeRecords: '故障记录',
     noRecentDowntime: '近期无故障记录',

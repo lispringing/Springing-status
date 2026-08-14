@@ -1,5 +1,6 @@
 const DAYS = 30, MS_DAY = 86400000, HOURS = 24
-const num = (v) => v != null && !Number.isNaN(v) && v > 0
+const positiveNumber = (v) => Number.isFinite(Number(v)) && Number(v) > 0
+const finiteNumber = (v) => v != null && Number.isFinite(Number(v))
 
 export const normalizeStatus = (s) => String(s || '').toUpperCase()
 export const isMonitorOnline = (s) => ['UP', 'STARTED'].includes(normalizeStatus(s))
@@ -38,15 +39,15 @@ export const parseTimestamp = (v) => {
 
 function avgResponse(m) {
   const avg = m.responseTimeStats?.summary?.avg
-  if (num(avg)) return Math.round(avg)
-  const vals = (m.responseTimeStats?.time_series || []).map((p) => p.value).filter(num)
+  if (positiveNumber(avg)) return Math.round(avg)
+  const vals = (m.responseTimeStats?.time_series || []).map((p) => p.value).filter(positiveNumber)
   return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null
 }
 
 function hourlyResponse(m) {
   const out = Array(HOURS).fill(null), groups = {}
   for (const p of m.responseTimeStats?.time_series || []) {
-    if (!num(p.value)) continue
+    if (!positiveNumber(p.value)) continue
     const ts = parseTimestamp(p.timestamp)
     if (!ts) continue
     const h = Math.floor((Date.now() - ts) / 3600000)
@@ -67,21 +68,69 @@ function incidents30d(list = []) {
   return { incidents: items, totalDowntime: items.reduce((n, i) => n + (i.duration || 0), 0) }
 }
 
-function buildDailyUptimes(m) {
-  const days = Array(DAYS).fill(null)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  for (const { timestamp, uptime } of m.lastDayUptimes?.histogram || []) {
-    if (uptime == null) continue
-    const ts = parseTimestamp(timestamp)
-    if (!ts) continue
-    const start = new Date(ts)
-    start.setHours(0, 0, 0, 0)
-    const age = Math.floor((today - start) / MS_DAY)
-    if (age >= 0 && age < DAYS) days[DAYS - 1 - age] = Number(uptime)
+const startOfDay = (value) => {
+  const date = new Date(value)
+  date.setHours(0, 0, 0, 0)
+  return date.getTime()
+}
+
+const incidentInterval = (incident, now) => {
+  const start = parseTimestamp(incident.startedAt ?? incident.startDateTime ?? incident.started_at)
+  if (!start || start >= now) return null
+
+  const resolved = parseTimestamp(
+    incident.resolvedAt ?? incident.endedAt ?? incident.endDateTime ?? incident.resolved_at
+  )
+  const duration = Number(incident.duration)
+  const end = resolved || (Number.isFinite(duration) && duration > 0 ? start + duration * 1000 : now)
+  return end > start ? [start, Math.min(end, now)] : null
+}
+
+const overlapDuration = (intervals, rangeStart, rangeEnd) => {
+  const overlaps = intervals
+    .map(([start, end]) => [Math.max(start, rangeStart), Math.min(end, rangeEnd)])
+    .filter(([start, end]) => end > start)
+    .sort((a, b) => a[0] - b[0])
+
+  let total = 0
+  let current = null
+  for (const interval of overlaps) {
+    if (!current || interval[0] > current[1]) {
+      if (current) total += current[1] - current[0]
+      current = [...interval]
+    } else {
+      current[1] = Math.max(current[1], interval[1])
+    }
   }
-  if (!days.some(Boolean) && isMonitorOnline(m.status)) days.fill(100)
-  const valid = days.filter(num)
+  if (current) total += current[1] - current[0]
+  return total
+}
+
+export function buildDailyUptimes(m, now = Date.now()) {
+  const nowMs = parseTimestamp(now) || Date.now()
+  const days = Array(DAYS).fill(null)
+  const todayStart = startOfDay(nowMs)
+  const creation = parseTimestamp(m.createDateTime ?? m.createdAt ?? m.created_at)
+  const intervals = (m.incidents || [])
+    .filter((incident) => incident.includeInReports !== false)
+    .map((incident) => incidentInterval(incident, nowMs))
+    .filter(Boolean)
+
+  for (let index = 0; index < DAYS; index += 1) {
+    const dayStart = new Date(todayStart)
+    dayStart.setDate(dayStart.getDate() - (DAYS - 1 - index))
+    const rangeStart = Math.max(dayStart.getTime(), creation || dayStart.getTime())
+    const nextDay = new Date(dayStart)
+    nextDay.setDate(nextDay.getDate() + 1)
+    const rangeEnd = Math.min(nextDay.getTime(), nowMs)
+    if (rangeEnd <= rangeStart) continue
+
+    const monitoredDuration = rangeEnd - rangeStart
+    const downtime = overlapDuration(intervals, rangeStart, rangeEnd)
+    days[index] = Math.max(0, Math.min(100, (1 - downtime / monitoredDuration) * 100))
+  }
+
+  const valid = days.filter(finiteNumber)
   const uptime = valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length
     : (isMonitorOnline(m.status) ? 100 : 0)
   return { dailyUptimes: days, uptime }

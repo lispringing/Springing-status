@@ -72,7 +72,6 @@
 
       <!-- 卡片主体：统计数据和图表 -->
       <div class="space-y-3">
-        <!-- 响应时间、运行时间和状态时间线 一行三列 -->
         <div class="grid grid-cols-3 gap-3">
           <div class="inner-card relative cursor-pointer p-3" @click="openResponseTimeModal(monitor)">
             <Icon 
@@ -96,18 +95,14 @@
             </div>
           </div>
           <div class="inner-card p-3">
-            <div class="flex flex-col gap-2">
-              <div class="flex gap-1 flex-wrap">
-                <div v-for="(value, index) in getUptimeData(monitor)" :key="index"
-                     :class="['w-4 h-4 rounded-sm transition-all hover:shadow-md cursor-pointer', getUptimeColor(value, monitor)]"
-                     :title="`${monitor.stats?.dailyUptimes?.[index] != null ? (monitor.stats.dailyUptimes[index].toFixed(2) + '%') : '无数据'}`"
-                />
-              </div>
-              <div class="flex justify-between text-2xs text-gray-400">
-                <span>{{ t('card.daysAgo') }}</span>
-                <span class="text-gray-500">{{ getDowntimeStats(monitor) }}</span>
-                <span>{{ t('card.today') }}</span>
-              </div>
+            <div class="text-2xs text-gray-500 dark:text-gray-400 mb-0.5">{{ t('card.dailyUptime') }}</div>
+            <div class="uptime-strip flex gap-0.5" role="list" :aria-label="t('card.dailyUptime')">
+              <div v-for="item in getUptimeData(monitor)" :key="item.date.getTime()"
+                   role="listitem"
+                   :class="['uptime-day w-2 h-5 rounded-xs transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-sm', getUptimeColor(item)]"
+                   :title="getUptimeTooltip(item)"
+                   :aria-label="getUptimeTooltip(item)"
+              />
             </div>
           </div>
         </div>
@@ -383,27 +378,33 @@ const chartOf = (m) => getStatusChartConfig(m, dateRange.value, isMobile.value)
 const getUptimeData = (monitor) => {
   const data = monitor.stats?.dailyUptimes || []
   return Array.from({ length: 30 }, (_, i) => {
-    const value = data[i]
-    return { value, isBeforeCreation: false }
+    const date = dateRange.value.dates[i]
+    const create = parseTimestamp(monitor.createDateTime ?? monitor.createdAt ?? monitor.created_at)
+    const nextDay = new Date(date)
+    nextDay.setDate(nextDay.getDate() + 1)
+    return { date, value: data[i] ?? null, isBeforeCreation: Boolean(create && nextDay.getTime() <= create) }
   })
 }
 
 // 根据访问率获取对应的颜色类
-const getUptimeColor = (item, monitor) => {
+const getUptimeColor = (item) => {
   const { value, isBeforeCreation } = item
-  if (isBeforeCreation || value === null || isNaN(value)) {
+  if (isBeforeCreation || value === null || !Number.isFinite(Number(value))) {
     return 'bg-gray-200 dark:bg-gray-700'
   }
-  if (value === 100) {
-    return 'bg-green-500 dark:bg-green-500'
-  }
-  if (value >= 99.9) {
-    return 'bg-green-400 dark:bg-green-400'
-  }
+  if (value >= 99.9) return 'bg-green-500 dark:bg-green-500'
   if (value >= 90) {
     return 'bg-yellow-400 dark:bg-yellow-500'
   }
   return 'bg-red-500 dark:bg-red-500'
+}
+
+const getUptimeTooltip = ({ date, value }) => {
+  const dateLabel = format(date, 'yyyy-MM-dd')
+  const valueLabel = value == null || !Number.isFinite(Number(value))
+    ? t('common.noData')
+    : `${Number(value).toFixed(2)}%`
+  return t('card.uptimeOnDate', { date: dateLabel, value: valueLabel })
 }
 
 const showDowntimeList = ref(null)
