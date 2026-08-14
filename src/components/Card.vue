@@ -59,69 +59,45 @@
       </div>
 
       <!-- 卡片主体：统计数据和图表 -->
-      <div class="space-y-4">
-        <!-- 响应时间和运行时间统计卡片 -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="inner-card relative cursor-pointer" @click="openResponseTimeModal(monitor)">
+      <div class="space-y-3">
+        <!-- 响应时间、运行时间和监控类型统计卡片 -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="inner-card relative cursor-pointer p-3" @click="openResponseTimeModal(monitor)">
             <Icon 
               icon="ri:line-chart-line"
               :class="[
-                'absolute top-3 right-3 w-4 h-4 p-1 rounded-full transition-colors duration-200 box-content',
+                'absolute top-2 right-2 w-3 h-3 p-0.5 rounded-full transition-colors duration-200 box-content',
                 getStatusClasses(monitor.status).text,
                 getStatusClasses(monitor.status).hover.text,
                 getStatusClasses(monitor.status).hover.bg
               ]"
             />
-            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ t('card.avgResponseTime') }}</div>
-            <div class="text-xl font-bold text-gray-900 dark:text-gray-100">
+            <div class="text-2xs text-gray-500 dark:text-gray-400 mb-0.5">{{ t('card.avgResponseTime') }}</div>
+            <div class="text-lg font-bold text-gray-900 dark:text-gray-100">
               {{ formatters.responseTime(monitor) }}
             </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {{ monitor.responseTimeStats ? t('card.last24Hours') : t('card.clickToLoad') }}
-            </div>
           </div>
-          <div class="inner-card">
-            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ t('card.avgUptime') }}</div>
-            <div class="text-xl font-bold text-gray-900 dark:text-gray-100">
+          <div class="inner-card p-3">
+            <div class="text-2xs text-gray-500 dark:text-gray-400 mb-0.5">{{ t('card.avgUptime') }}</div>
+            <div class="text-lg font-bold text-gray-900 dark:text-gray-100">
               {{ formatters.uptime(monitor.stats?.uptime) }}
             </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {{ t('card.lastDays', { days: getValidDays(monitor) }) }}
+          </div>
+          <div class="inner-card p-3">
+            <div class="text-2xs text-gray-500 dark:text-gray-400 mb-0.5">{{ t('card.monitorType') || '监控类型' }}</div>
+            <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {{ getMonitorType(monitor) }} / {{ Math.floor(monitor.interval / 60) }}m
             </div>
           </div>
         </div>
 
         <!-- 状态时间线图表 -->
-        <div class="inner-card">
-          <!-- 监控类型和状态指示器 -->
-          <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-4">
-            <div class="flex items-center gap-1">
-              <div class="relative flex">
-                <div :class="[
-                  'w-2 h-2 rounded-full',
-                  getStatusClasses(monitor.status).dot
-                ]"></div>
-                <div :class="[
-                  'absolute inset-0 w-2 h-2 rounded-full animate-ping opacity-75',
-                  getStatusClasses(monitor.status).dotPing
-                ]"></div>
-              </div>
-              <span class="text-xs">{{ getMonitorType(monitor) }} / {{ Math.floor(monitor.interval / 60) }}m</span>
-              <div class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-              <span :class="[
-                'text-xs font-medium',
-                getStatusClasses(monitor.status).text
-              ]">
-                {{ getStatusLabel(monitor.status) }}
-              </span>
-            </div>
-          </div>
-
+        <div class="inner-card p-3">
           <!-- 时间线散点图 -->
-          <div class="h-12">
+          <div class="h-10">
             <Scatter v-if="chartOf(monitor).data" :data="chartOf(monitor).data" :options="chartOf(monitor).options" />
           </div>
-          <div class="flex justify-between text-xs text-gray-400 mt-2">
+          <div class="flex justify-between text-2xs text-gray-400 mt-1.5">
             <span>{{ t('card.daysAgo') }}</span>
             <span class="text-gray-500">
               {{ getDowntimeStats(monitor) }}
