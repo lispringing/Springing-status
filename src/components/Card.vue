@@ -34,6 +34,18 @@
                 box-content"
               @click="openUrl(monitor.url)"
             />
+            <button
+              @click="openDowntimeModal(monitor)"
+              class="p-1.5 rounded-full transition-colors duration-200
+                text-gray-400 hover:text-gray-600 hover:bg-gray-100
+                dark:text-gray-500 dark:hover:text-gray-400 dark:hover:bg-gray-700/50"
+              :title="t('card.downtimeRecords')"
+            >
+              <Icon 
+                icon="bi:file-text" 
+                class="w-5 h-5"
+              />
+            </button>
           </div>
         </div>
         <div class="shrink-0">
@@ -93,76 +105,6 @@
               <span>{{ t('card.today') }}</span>
             </div>
           </div>
-        </div>
-
-        <!-- 故障记录下拉列表 -->
-        <div class="relative">
-          <button 
-            @click="toggleDowntimeList(monitor.id)" 
-            :data-monitor-id="monitor.id.toString()"
-            class="w-full px-4 py-3 flex items-center justify-between text-left
-              bg-gray-50 dark:bg-gray-800/50
-              rounded-lg transition-colors duration-200
-              hover:bg-gray-100 dark:hover:bg-gray-700/50
-              focus:outline-none"
-          >
-            <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('card.downtimeRecords') }}</span>
-            <Icon 
-              icon="bi:chevron-up"
-              class="w-4 h-4 text-gray-400 transition-transform duration-200"
-              :class="{ 'rotate-180': showDowntimeList === monitor.id }"
-            />
-          </button>
-          
-          <Transition
-            enter-active-class="transition-all duration-200 ease-out"
-            enter-from-class="opacity-0 translate-y-[10px] scale-95"
-            enter-to-class="opacity-100 translate-y-0 scale-100"
-            leave-active-class="transition-all duration-200 ease-in"
-            leave-from-class="opacity-100 translate-y-0 scale-100"
-            leave-to-class="opacity-0 translate-y-[10px] scale-95"
-          >
-            <div v-if="showDowntimeList === monitor.id" 
-                 class="absolute bottom-full left-0 right-0 mb-2
-                   bg-white dark:bg-gray-800 border-[1.5px] border-gray-200 dark:border-gray-700 
-                   rounded-lg downtime-list"
-            >
-              <div class="p-4 max-h-[280px] overflow-y-auto">
-                <TransitionGroup 
-                  tag="div"
-                  class="space-y-2"
-                  enter-active-class="transition duration-200 ease-out"
-                  enter-from-class="opacity-0 scale-95"
-                  enter-to-class="opacity-100 scale-100"
-                  leave-active-class="transition duration-200 ease-in"
-                  leave-from-class="opacity-100 scale-100"
-                  leave-to-class="opacity-0 scale-95"
-                  move-class="transition duration-200"
-                >
-                  <div v-if="getIncidents(monitor)?.length" 
-                       v-for="log in getIncidents(monitor)" 
-                       :key="log.id"
-                       class="p-3 bg-red-50/90 dark:bg-red-900/20 rounded-lg
-                         border border-red-200/80 dark:border-red-800/80"
-                  >
-                    <div class="flex justify-between">
-                      <span class="text-red-600/90 dark:text-red-400/90 text-xs">{{ getIncidentReason(log) }}</span>
-                      <span class="text-red-600/80 dark:text-red-400/80 text-xs">{{ formatters.dateTime(log.startedAt) }}</span>
-                    </div>
-                    <div class="mt-1 text-red-600/80 dark:text-red-400/80 text-xs">
-                      {{ t('card.duration') }}: {{ formatters.duration(log.duration) }}
-                    </div>
-                  </div>
-                  <div v-else
-                       key="empty"
-                       class="text-center text-3xs text-gray-400"
-                  >
-                    {{ t('card.noRecentDowntime') }}
-                  </div>
-                </TransitionGroup>
-              </div>
-            </div>
-          </Transition>
         </div>
       </div>
     </div>
@@ -246,6 +188,92 @@
                   :options="responseTimeChartOptions"
             />
           </div>
+        </div>
+      </Transition>
+    </div>
+  </Teleport>
+
+  <!-- 故障记录详情模态框 -->
+  <Teleport to="body">
+    <div v-if="showDowntimeModal" 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    >
+      <!-- 背景遮罩 -->
+      <Transition
+        appear
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        enter-active-class="transition-opacity duration-300"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+        leave-active-class="transition-opacity duration-300"
+      >
+        <div v-show="showDowntimeModal"
+             class="absolute inset-0 bg-black/60" 
+             @click="closeDowntimeModal"
+        ></div>
+      </Transition>
+      
+      <!-- 弹窗内容 -->
+      <Transition
+        appear
+        enter-from-class="opacity-0 translate-y-4 scale-95"
+        enter-to-class="opacity-100 translate-y-0 scale-100"
+        enter-active-class="transition-all duration-300 transform"
+        leave-from-class="opacity-100 translate-y-0 scale-100"
+        leave-to-class="opacity-0 translate-y-4 scale-95"
+        leave-active-class="transition-all duration-300 transform"
+      >
+        <div v-show="showDowntimeModal"
+             class="relative bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-2xl
+                    shadow-xl border border-gray-200 dark:border-gray-700
+                    max-h-[80vh] overflow-y-auto"
+             @click.stop
+        >
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
+              {{ monitors?.find(m => m.id === showDowntimeModal)?.friendlyName }} - {{ t('card.downtimeRecords') }}
+            </h3>
+            <button @click="closeDowntimeModal"
+                    class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full 
+                           transition-colors duration-200">
+              <Icon icon="carbon:close" 
+                    class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            </button>
+          </div>
+          
+          <TransitionGroup 
+            tag="div"
+            class="space-y-3"
+            enter-active-class="transition duration-200 ease-out"
+            enter-from-class="opacity-0 scale-95"
+            enter-to-class="opacity-100 scale-100"
+            leave-active-class="transition duration-200 ease-in"
+            leave-from-class="opacity-100 scale-100"
+            leave-to-class="opacity-0 scale-95"
+            move-class="transition duration-200"
+          >
+            <div v-if="getIncidents(monitors?.find(m => m.id === showDowntimeModal))?.length" 
+                 v-for="log in getIncidents(monitors?.find(m => m.id === showDowntimeModal))" 
+                 :key="log.id"
+                 class="p-4 bg-red-50/90 dark:bg-red-900/20 rounded-lg
+                   border border-red-200/80 dark:border-red-800/80"
+            >
+              <div class="flex justify-between mb-2">
+                <span class="text-red-600/90 dark:text-red-400/90 font-medium text-sm">{{ getIncidentReason(log) }}</span>
+                <span class="text-red-600/80 dark:text-red-400/80 text-sm">{{ formatters.dateTime(log.startedAt) }}</span>
+              </div>
+              <div class="text-red-600/80 dark:text-red-400/80 text-sm">
+                {{ t('card.duration') }}: {{ formatters.duration(log.duration) }}
+              </div>
+            </div>
+            <div v-else
+                 key="empty"
+                 class="text-center text-gray-400 py-8"
+            >
+              {{ t('card.noRecentDowntime') }}
+            </div>
+          </TransitionGroup>
         </div>
       </Transition>
     </div>
@@ -347,6 +375,7 @@ const getIncidents = (m) => (m.stats?.incidents || []).slice(0, 15)
 const chartOf = (m) => getStatusChartConfig(m, dateRange.value, isMobile.value)
 
 const showDowntimeList = ref(null)
+const showDowntimeModal = ref(null)
 const showResponseTimeModal = ref(false)
 const selectedMonitor = ref(null)
 const isMobile = ref(window.innerWidth < 768)
@@ -402,6 +431,9 @@ const onAfterLeave = () => {
   rtLoading.value = false
   selectedMonitor.value = null
 }
+
+const openDowntimeModal = (monitor) => { showDowntimeModal.value = monitor.id }
+const closeDowntimeModal = () => { showDowntimeModal.value = null }
 
 const closeOnClickOutside = (e) => {
   if (!showDowntimeList.value) return
