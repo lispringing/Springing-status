@@ -23,14 +23,14 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@iconify/vue'
-import { isMonitorOnline, isMonitorAbnormal } from '@/utils/monitor'
+import { isMonitorOnline, countAbnormalMonitors } from '@/utils/monitor'
 
 const { t } = useI18n()
 const props = defineProps({ monitors: { type: Array, default: () => [] } })
 
 const total = computed(() => props.monitors.length)
 const normal = computed(() => props.monitors.filter((m) => isMonitorOnline(m.status)).length)
-const abnormal = computed(() => props.monitors.filter((m) => isMonitorAbnormal(m.status)).length)
+const abnormal = computed(() => countAbnormalMonitors(props.monitors))
 const avgUptime = computed(() => {
   const list = props.monitors.filter((m) => m.stats?.uptime != null)
   if (!list.length) return 0

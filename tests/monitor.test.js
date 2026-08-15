@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildDailyUptimes, areMonitorsHealthy } from '../src/utils/monitor.js'
+import { buildDailyUptimes, areMonitorsHealthy, countAbnormalMonitors } from '../src/utils/monitor.js'
 
 const localTime = (base, daysAgo, hour = 0) => {
   const date = new Date(base)
@@ -77,14 +77,17 @@ test('buildDailyUptimes ignores incidents excluded from API reports', () => {
   assert.equal(result.dailyUptimes[28], 100)
 })
 
-test('areMonitorsHealthy is green only when every site is explicitly up', () => {
+test('status health uses the same abnormal count as the homepage', () => {
+  assert.equal(countAbnormalMonitors([{ status: 'UP' }, { status: 'STARTED' }]), 0)
+  assert.equal(countAbnormalMonitors([{ status: 'UP' }, { status: 'DOWN' }]), 1)
+  assert.equal(countAbnormalMonitors([{ status: 'PAUSED' }, { status: 'LOOKS_DOWN' }]), 2)
+
   assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'up' }]), true)
-  assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'STARTED' }]), false)
+  assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'STARTED' }]), true)
   assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'PAUSED' }]), false)
   assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'DOWN' }]), false)
   assert.equal(areMonitorsHealthy([{ status: 'LOOKS_DOWN' }]), false)
-  assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'UNKNOWN' }]), false)
-  assert.equal(areMonitorsHealthy([{ status: 'UP' }, {}]), false)
+  assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'UNKNOWN' }]), true)
   assert.equal(areMonitorsHealthy([]), false)
   assert.equal(areMonitorsHealthy(null), false)
 })
