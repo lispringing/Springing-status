@@ -72,7 +72,7 @@
 
       <!-- 卡片主体：统计数据和图表 -->
       <div class="space-y-3">
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div class="inner-card relative cursor-pointer p-3" @click="openResponseTimeModal(monitor)">
             <Icon 
               icon="ri:line-chart-line"
@@ -94,12 +94,12 @@
               {{ formatters.uptime(monitor.stats?.uptime) }}
             </div>
           </div>
-          <div class="inner-card p-3">
+          <div class="inner-card col-span-2 sm:col-span-1 p-3">
             <div class="text-2xs text-gray-500 dark:text-gray-400 mb-0.5">{{ t('card.dailyUptime') }}</div>
-            <div class="uptime-strip flex gap-0.5" role="list" :aria-label="t('card.dailyUptime')">
+            <div class="uptime-strip grid sm:flex gap-0.5" role="list" :aria-label="t('card.dailyUptime')">
               <div v-for="item in getUptimeData(monitor)" :key="item.date.getTime()"
                    role="listitem"
-                   :class="['uptime-day w-2 h-5 rounded-xs transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-sm', getUptimeColor(item)]"
+                   :class="['uptime-day w-full sm:w-2 h-5 rounded-xs transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-sm', getUptimeColor(item)]"
                    :title="getUptimeTooltip(item)"
                    :aria-label="getUptimeTooltip(item)"
               />
