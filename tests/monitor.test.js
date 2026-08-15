@@ -77,10 +77,14 @@ test('buildDailyUptimes ignores incidents excluded from API reports', () => {
   assert.equal(result.dailyUptimes[28], 100)
 })
 
-test('areMonitorsHealthy turns red when any site is abnormal or data is unavailable', () => {
-  assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'STARTED' }]), true)
+test('areMonitorsHealthy is green only when every site is explicitly up', () => {
+  assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'up' }]), true)
+  assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'STARTED' }]), false)
   assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'PAUSED' }]), false)
   assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'DOWN' }]), false)
   assert.equal(areMonitorsHealthy([{ status: 'LOOKS_DOWN' }]), false)
+  assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'UNKNOWN' }]), false)
+  assert.equal(areMonitorsHealthy([{ status: 'UP' }, {}]), false)
   assert.equal(areMonitorsHealthy([]), false)
+  assert.equal(areMonitorsHealthy(null), false)
 })
