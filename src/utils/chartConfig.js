@@ -89,3 +89,44 @@ export const responseTimeChartOptions = {
   elements: { line: { tension: 0.4, borderWidth: 1.5, borderCapStyle: 'round', borderJoinStyle: 'round', capBezierPoints: true } },
   animation: { duration: 600, easing: 'easeInOutCubic', delay: (ctx) => ctx.dataIndex * 20 }
 }
+
+
+
+///控制台打印
+
+console.clear();
+var styleTitle1 = `
+font-size: 20px;
+font-weight: 600;
+color: rgb(244,167,89);
+`
+var styleTitle3 = `
+font-size: 20px;
+font-weight: 600;
+color: rgb(244,167,89);
+`
+var styleTitle2 = `
+font-size:20px;
+color: rgb(244,167,89);
+`
+var styleContent = `
+font-size:17px;
+color: rgb(30,152,255);
+`
+var title1 = '小春子の状态检测'
+var title2 = `                                                                                               
+███████╗██████╗ ██████╗ ██╗███╗   ██╗ ██████╗ ██╗███╗   ██╗ ██████╗ 
+██╔════╝██╔══██╗██╔══██╗██║████╗  ██║██╔════╝ ██║████╗  ██║██╔════╝ 
+███████╗██████╔╝██████╔╝██║██╔██╗ ██║██║  ███╗██║██╔██╗ ██║██║  ███╗
+╚════██║██╔═══╝ ██╔══██╗██║██║╚██╗██║██║   ██║██║██║╚██╗██║██║   ██║
+███████║██║     ██║  ██║██║██║ ╚████║╚██████╔╝██║██║ ╚████║╚██████╔╝
+╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
+`
+var title3 = '成功打开控制台 婧怡大王颜值+1 身高+1 财富+1 健康+1'
+var content = `
+🐟运行框架目前版本：鲸鱼1.0.8
+🎣最新框架版本：鲸鱼1.0.9 Beta
+控制台输入update删除本地缓存并更新框架
+`
+console.log(`%c${title1} %c${title2} %c${title3}
+%c${content}`, styleTitle1, styleTitle2, styleTitle3 ,styleContent)
