@@ -15,7 +15,12 @@ export class RateLimitError extends Error {
 const trim = (v) => v?.replace(/^["']|["']$/g, '').trim()
 const absUrl = (path) => path.startsWith('http') ? path : `${API}${path.startsWith('/') ? path : `/${path}`}`
 
-const keyOf = (o = {}) => trim(o.apiKey) || trim(o.api_key)  || trim(o?.env?.UPTIMEROBOT_API_KEY) || trim(o?.env?.VITE_UPTIMEROBOT_API_KEY)  || trim(process.env.UPTIMEROBOT_API_KEY) || trim(process.env.VITE_UPTIMEROBOT_API_KEY)
+const keyOf = (o = {}) => {
+  const env = typeof process !== 'undefined' ? process.env : undefined
+  return trim(o.apiKey) || trim(o.api_key)
+    || trim(o?.env?.UPTIMEROBOT_API_KEY) || trim(o?.env?.VITE_UPTIMEROBOT_API_KEY)
+    || trim(env?.UPTIMEROBOT_API_KEY) || trim(env?.VITE_UPTIMEROBOT_API_KEY)
+}
 
 async function get(apiKey, url) {
   const res = await fetch(url, {

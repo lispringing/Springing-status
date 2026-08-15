@@ -16,3 +16,17 @@ test('parseRequestApiKey falls back to request query for standard Request object
 
   assert.equal(result, 'from-query')
 })
+
+test('parseRequestApiKey works in an Edge runtime without global process', async () => {
+  const nodeProcess = globalThis.process
+  try {
+    globalThis.process = undefined
+    const result = await parseRequestApiKey(
+      new Request('https://example.com/status/?apiKey=from-query')
+    )
+
+    assert.equal(result, 'from-query')
+  } finally {
+    globalThis.process = nodeProcess
+  }
+})
