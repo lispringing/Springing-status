@@ -10,8 +10,8 @@ export const isMonitorWarning = (s) => ['PAUSED', 'STARTED'].includes(normalizeS
 export const isMonitorAbnormal = (s) => isMonitorOffline(s) || isMonitorPaused(s)
 
 export const areMonitorsHealthy = (list = []) => {
-  if (!Array.isArray(list) || list.length === 0) return false
-  return list.every((m) => !isMonitorOffline(m?.status) && !isMonitorPaused(m?.status))
+  if (!Array.isArray(list)) return true
+  return list.every((m) => !isMonitorOffline(m?.status))
 }
 
 const rank = (s) => ({ UP: 0, STARTED: 1, PAUSED: 2, LOOKS_DOWN: 3, DOWN: 4 }[normalizeStatus(s)] ?? 5)
