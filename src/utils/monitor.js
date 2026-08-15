@@ -9,6 +9,11 @@ export const isMonitorPaused = (s) => normalizeStatus(s) === 'PAUSED'
 export const isMonitorWarning = (s) => ['PAUSED', 'STARTED'].includes(normalizeStatus(s))
 export const isMonitorAbnormal = (s) => isMonitorOffline(s) || isMonitorPaused(s)
 
+export const areMonitorsHealthy = (list = []) => {
+  if (!Array.isArray(list) || list.length === 0) return false
+  return list.every((m) => !isMonitorOffline(m?.status) && !isMonitorPaused(m?.status))
+}
+
 const rank = (s) => ({ UP: 0, STARTED: 1, PAUSED: 2, LOOKS_DOWN: 3, DOWN: 4 }[normalizeStatus(s)] ?? 5)
 
 const cmp = (a, b) => String(a.id).localeCompare(String(b.id), undefined, { numeric: true })

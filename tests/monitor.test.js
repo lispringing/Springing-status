@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildDailyUptimes } from '../src/utils/monitor.js'
+import { buildDailyUptimes, areMonitorsHealthy } from '../src/utils/monitor.js'
 
 const localTime = (base, daysAgo, hour = 0) => {
   const date = new Date(base)
@@ -75,4 +75,10 @@ test('buildDailyUptimes ignores incidents excluded from API reports', () => {
   }, now)
 
   assert.equal(result.dailyUptimes[28], 100)
+})
+
+test('areMonitorsHealthy returns green only when every monitored site is online', () => {
+  assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'STARTED' }]), true)
+  assert.equal(areMonitorsHealthy([{ status: 'UP' }, { status: 'DOWN' }]), false)
+  assert.equal(areMonitorsHealthy([]), false)
 })

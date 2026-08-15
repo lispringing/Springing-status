@@ -1,3 +1,5 @@
+import { areMonitorsHealthy } from '../src/utils/monitor.js'
+
 const API = 'https://api.uptimerobot.com/v3'
 const INCIDENT_LOOKBACK = 31 * 24 * 60 * 60 * 1000
 export const CACHE_TTL_MS = 5 * 60 * 1000
@@ -110,21 +112,51 @@ export const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization'
 }
 
+export function buildStatusSvg({ healthy = true } = {}) {
+  const color = healthy ? '#22c55e' : '#ef4444'
+  const label = healthy ? 'healthy' : 'down'
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40" role="img" aria-label="${label} status">
+      <rect width="120" height="40" rx="8" fill="#f8fafc"/>
+      <circle cx="18" cy="20" r="8" fill="${color}"/>
+      <circle cx="18" cy="20" r="12" fill="${color}" opacity="0.18"/>
+      <text x="36" y="25" fill="#111827" font-size="14" font-family="Arial, sans-serif" font-weight="700">${label}</text>
+    </svg>
+  `.trim()
+}
+
 export default async function handler(req, res) {
   Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v))
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'GET' && req.method !== 'POST') return res.status(405).json({ error: '只支持 GET / POST' })
 
   try {
+    const query = req.query || {}
     const apiKey = keyOf({})
       || req.headers.authorization?.replace(/^Bearer\s+/i, '')
-      || req.query?.api_key || req.query?.apiKey
+      || query.api_key || query.apiKey
       || req.body?.api_key || req.body?.apiKey
-    const monitorId = req.query?.monitorId
+    const monitorId = query.monitorId
     if (monitorId) {
       return res.json({ responseTimeStats: await fetchMonitorResponseTime({ apiKey, monitorId }) })
     }
-    const force = ['1', 'true'].includes(String(req.query?.refresh))
+
+    const reqPath = req.path || req.originalUrl || req.url || ''
+    if (reqPath === '/status' || reqPath.startsWith('/status?')) {
+      let monitors = []
+      try {
+        const data = await getCachedMonitorStatus(apiKey, { force: ['1', 'true'].includes(String(query.refresh)) })
+        monitors = data?.monitors || []
+      } catch {
+        monitors = []
+      }
+      const healthy = areMonitorsHealthy(monitors)
+      res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8')
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+      return res.send(buildStatusSvg({ healthy }))
+    }
+
+    const force = ['1', 'true'].includes(String(query.refresh))
     const data = await getCachedMonitorStatus(apiKey, { force })
     res.setHeader('Cache-Control', `public, max-age=${CACHE_TTL_MS / 1000 | 0}`)
     return res.json(data)
