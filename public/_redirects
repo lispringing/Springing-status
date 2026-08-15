@@ -1,0 +1,2 @@
+/status /api/status?badge=1 200
+/status/ /api/status?badge=1 200

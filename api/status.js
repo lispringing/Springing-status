@@ -141,8 +141,11 @@ export default async function handler(req, res) {
       return res.json({ responseTimeStats: await fetchMonitorResponseTime({ apiKey, monitorId }) })
     }
 
-    const reqPath = req.path || req.originalUrl || req.url || ''
-    if (reqPath === '/status' || reqPath.startsWith('/status?')) {
+    const isBadgeRequest = ['1', 'true'].includes(String(query.badge))
+      || String(req.path || req.originalUrl || req.url || '').startsWith('/status')
+      || String(req.path || req.originalUrl || req.url || '').startsWith('/api/status') && ['1', 'true'].includes(String(query.badge))
+
+    if (isBadgeRequest && !monitorId) {
       let monitors = []
       try {
         const data = await getCachedMonitorStatus(apiKey, { force: ['1', 'true'].includes(String(query.refresh)) })
