@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/status.js": {
+      "includeFiles": ".env"
+    }
+  },
   "rewrites": [
     { "source": "/status", "destination": "/api/status?badge=1" },
     { "source": "/status/", "destination": "/api/status?badge=1" }

@@ -22,6 +22,13 @@ const keyOf = (o = {}) => {
     || trim(env?.UPTIMEROBOT_API_KEY) || trim(env?.VITE_UPTIMEROBOT_API_KEY)
 }
 
+const loadBundledVercelEnv = () => {
+  if (keyOf({}) || typeof process === 'undefined' || typeof process.loadEnvFile !== 'function') return
+  try {
+    process.loadEnvFile(['.', '.env'].join('/'))
+  } catch {}
+}
+
 async function get(apiKey, url) {
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${apiKey}`, Accept: 'application/json' }
@@ -136,6 +143,7 @@ export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') return res.status(405).json({ error: '只支持 GET / POST' })
 
   try {
+    loadBundledVercelEnv()
     const query = req.query || {}
     const apiKey = keyOf({})
       || req.headers.authorization?.replace(/^Bearer\s+/i, '')
