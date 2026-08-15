@@ -2,15 +2,15 @@
   "name": "uptime-status",
   "version": "1.1.0",
   "private": true,
-  "author": "JLinmr",
+  "author": "小春子",
   "url": "https://www.springing.top",
-  "email": "ruoms@qq.com",
+  "email": "2638526782@qq.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JLinmr/Uptime-Status"
+    "url": "https://github.com/lispringing/Springing-status"
   },
   "start-year": "2020",
-  "repositoryUrl": "https://github.com/JLinmr/Uptime-Status",
+  "repositoryUrl": "https://github.com/lispringing/Springing-status",
   "type": "module",
   "scripts": {
     "dev": "vite",
