@@ -30,9 +30,13 @@
 
 ## 功能
 本项目基于<a href="https://github.com/JLinmr/uptime-status" target="_blank">Status Monitor </a>进行了如下的二次开发
+<br>
 ✅网站排列样式重构
+<br>
 ✅故障记录功能重构
+<br>
 ✅增加日访问热力图
+<br>
 ✅增加站点状态徽标
 
 
