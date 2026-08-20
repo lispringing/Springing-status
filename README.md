@@ -20,38 +20,39 @@
 
 
 
-## 📖 简介
+## 简介
 
-站点监测是一个基于 UptimeRobot **v3 API** 开发的站点状态监控面板，支持多站点状态监控、故障统计等功能。界面简洁美观，响应式设计，支持亮暗主题切换。
+站点监测是一个基于 UptimeRobot **v3 API** 和<a href="https://github.com/JLinmr/uptime-status" target="_blank">Status Monitor </a>二次开发的站点状态监控面板，支持多站点状态监控、故障统计等功能。界面简洁美观，响应式设计，支持亮暗主题切换。
 
 > **升级提示**：UptimeRobot 已停用旧版 v2 接口（`.../v2/getMonitors`）。若你仍在使用旧版代码，请拉取最新版本并重新部署，否则会出现加载失败或请求超时。
 
-## ✨ 功能预览
 
-![功能预览](https://i1.wp.com/dev.ruom.top/i/2025/01/25/629114.webp)
 
-## ✨ 特性
 
-- 📊 实时监控：支持多种监控方式
-- 📱 响应式设计：适配移动端和桌面端
-- 🌓 主题切换：支持亮色/暗色主题
-- 📈 数据统计：可视化展示可用率和响应时间（响应时间点击后加载）
-- 🔔 故障记录：详细的宕机记录和原因分析
-- 🔄 自动刷新：定时自动更新监控数据（5 分钟缓存）
-- 🔃 排序切换：支持按名称、时间、状态排序及升序/降序
-- 💫 平滑动画：流畅的用户界面交互体验
 
-### UptimeRobot API 变更说明
 
-UptimeRobot 已全面切换到 **v3 REST API**，旧版 v2 接口已不可用。主要变化：
 
-| 项目 | v2（已停用） | v3（当前） |
-|------|-------------|-----------|
-| 地址 | `https://api.uptimerobot.com/v2/getMonitors` | `https://api.uptimerobot.com/v3` |
-| 认证 | POST 表单 + `api_key` | `Authorization: Bearer <key>` |
-| 数据 | 单次返回 | 分页 REST（monitors、incidents 等） |
 
-本项目已通过 `/api/status` 服务端代理对接 v3，部署时 **无需** 在前端直连 UptimeRobot。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## ⚙️ 部署配置
 
@@ -143,22 +144,3 @@ pnpm build
 npm run build
 ```
 构建的文件在 `dist` 目录下，将 `dist` 目录部署到服务器即可。
-
-## CDN赞助
-
-本项目 CDN 加速及安全防护由 Tencent EdgeOne 赞助：EdgeOne 提供长期有效的免费套餐，包含不限量的流量和请求，覆盖中国大陆节点，且无任何超额收费，感兴趣的朋友可以去 EdgeOne 官网获取
-<a href="https://edgeone.ai/zh?from=github" target="_blank">
-    最佳亚洲 CDN、Edge 和安全解决方案 - 腾讯 EdgeOne
-<img src="https://edgeone.ai/media/34fe3a45-492d-4ea4-ae5d-ea1087ca7b4b.png" width="500" height="100">
-</a>
-
-## 📝 开源协议
-
-本项目基于 [MIT License](LICENSE) 开源，使用时请遵守开源协议。
-
-## 🙏 致谢
-
-- [UptimeRobot](https://uptimerobot.com/) - 提供监控 API 支持
-- [Vue.js](https://vuejs.org/) - 前端框架
-- [Tailwind CSS](https://tailwindcss.com/) - CSS 框架
-- [Chart.js](https://www.chartjs.org/) - 图表库 
