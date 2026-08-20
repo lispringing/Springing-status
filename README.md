@@ -24,9 +24,17 @@
 
 站点监测是一个基于 UptimeRobot **v3 API** 和<a href="https://github.com/JLinmr/uptime-status" target="_blank">Status Monitor </a>二次开发的站点状态监控面板，支持多站点状态监控、故障统计等功能。界面简洁美观，响应式设计，支持亮暗主题切换。
 
-
+> **升级提示**：UptimeRobot 已停用旧版 v2 接口（`.../v2/getMonitors`）。若你仍在使用旧版代码，请拉取最新版本并重新部署，否则会出现加载失败或请求超时。
 
 ![](./public/about.png)
+
+## 功能
+本项目基于<a href="https://github.com/JLinmr/uptime-status" target="_blank">Status Monitor </a>进行了如下的二次开发
+✅网站排列样式重构
+✅故障记录功能重构
+✅增加日访问热力图
+✅增加站点状态徽标
+
 
 
 
