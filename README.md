@@ -118,7 +118,7 @@ npm run build
    - 连接到GitHub，选择项目
    - 填写项目名称，点击Create
    - 使用默认配置 `VITE_UPTIMEROBOT_API_URL = "/api/status"`
-   
+
 3. **Cloudflare Pages**
    - 点击上方橙色 "Deploy" 按钮
    - 找到计算(worker) 部分
@@ -136,7 +136,7 @@ npm run build
 >访问/status/页面会根据目前的网站状态生成一个svg图标，可以直接嵌入其他页面，用于展示站点状态
 
 
-![](./public/about.png)
+![](./public/foot.png)
 
 
 
