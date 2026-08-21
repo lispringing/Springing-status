@@ -39,80 +39,11 @@
 <br>
 ✅增加站点状态徽标
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## ⚙️ 部署配置
-
-### 环境要求
-
-- Node.js >= 16.16.0
-- NPM >= 8.15.0 或 PNPM >= 8.0.0
-
-### 获取 UptimeRobot API Key
-
-1. 注册/登录 [UptimeRobot](https://uptimerobot.com/)
-2. 进入 [Integrations & API](https://dashboard.uptimerobot.com/integrations)
-3. 下拉到最底部在 Main API keys 部分创建 **Read-Only API Key**
-4. 复制生成的 API Key
-
-### API 代理说明
-
-本项目支持以下三种部署方式,均可实现自动处理跨域请求:
-
-1. **腾讯云 EdgeOne Pages**
-   - 点击上方蓝色 "Deploy" 按钮
-   - 连接到GitHub，选择项目
-   - 框架预设选择Vue，点击开始部署
-   - 使用默认配置 `VITE_UPTIMEROBOT_API_URL = "/api/status"`
-
-2. **Vercel**
-   - 点击上方黑色 "Deploy" 按钮
-   - 连接到GitHub，选择项目
-   - 填写项目名称，点击Create
-   - 使用默认配置 `VITE_UPTIMEROBOT_API_URL = "/api/status"`
-
-3. **Cloudflare Pages**
-   - 点击上方橙色 "Deploy" 按钮
-   - 找到计算(worker) 部分
-   - 点击创建，选择Pages，连接到GitHub，选择项目，点击开始创建
-   - 框架预设选择Vue，点击保持并部署
-   - 使用默认配置 `VITE_UPTIMEROBOT_API_URL = "/api/status"`
-
-4. **其他平台**
-   - 自行搭建 API 代理，代理目标为 `https://api.uptimerobot.com/v3`
-   - 在 `.env` 文件中设置 `VITE_UPTIMEROBOT_API_URL` 为你的 API 代理地址
-
-### 快速开始
+## 快速开始
 
 1. 克隆项目
 ```bash
-git clone https://github.com/JLinmr/uptime-status.git
-cd uptime-status
+git clone https://github.com/lispringing/Springing-status
 ```
 
 2. 安装依赖
@@ -137,7 +68,7 @@ VITE_UPTIMEROBOT_API_URL = "/api/status"
 # VITE_UPTIMEROBOT_API_URL = "https://api.uptimerobot.com/v3"
 
 # 站点名称
-VITE_APP_TITLE = "梦爱吃鱼"
+VITE_APP_TITLE = "Springing"
 ```
 
 > 已移除 `VITE_UPTIMEROBOT_STATUS_SORT` 配置项，排序请在页面右上角选择，偏好会自动保存到浏览器。
@@ -156,3 +87,73 @@ pnpm build
 npm run build
 ```
 构建的文件在 `dist` 目录下，将 `dist` 目录部署到服务器即可。
+
+
+### 环境要求
+
+- Node.js >= 16.16.0
+- NPM >= 8.15.0 或 PNPM >= 8.0.0
+
+### 获取 UptimeRobot API Key
+
+1. 注册/登录 [UptimeRobot](https://uptimerobot.com/)
+2. 进入 [Integrations & API](https://dashboard.uptimerobot.com/integrations)
+3. 下拉到最底部在 Main API keys 部分创建 **Read-Only API Key**
+4. 复制生成的 API Key
+
+**Vercel**
+   - 点击上方黑色 "Deploy" 按钮
+   - 连接到GitHub，选择项目
+   - 填写项目名称，点击Create
+   - 使用默认配置 `VITE_UPTIMEROBOT_API_URL = "/api/status"`
+
+### API 代理说明
+
+本项目支持以下三种部署方式,均可实现自动处理跨域请求:
+
+1. **腾讯云 EdgeOne Pages**
+   - 点击上方蓝色 "Deploy" 按钮
+   - 连接到GitHub，选择项目
+   - 框架预设选择Vue，点击开始部署
+   - 使用默认配置 `VITE_UPTIMEROBOT_API_URL = "/api/status"`
+
+2. 
+3. **Cloudflare Pages**
+   - 点击上方橙色 "Deploy" 按钮
+   - 找到计算(worker) 部分
+   - 点击创建，选择Pages，连接到GitHub，选择项目，点击开始创建
+   - 框架预设选择Vue，点击保持并部署
+   - 使用默认配置 `VITE_UPTIMEROBOT_API_URL = "/api/status"`
+
+4. **其他平台**
+   - 自行搭建 API 代理，代理目标为 `https://api.uptimerobot.com/v3`
+   - 在 `.env` 文件中设置 `VITE_UPTIMEROBOT_API_URL` 为你的 API 代理地址
+
+
+## 新增:状态徽标
+
+>访问/status/页面会根据目前的网站状态生成一个svg图标
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
