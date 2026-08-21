@@ -101,11 +101,6 @@ npm run build
 3. 下拉到最底部在 Main API keys 部分创建 **Read-Only API Key**
 4. 复制生成的 API Key
 
-**Vercel**
-   - 点击上方黑色 "Deploy" 按钮
-   - 连接到GitHub，选择项目
-   - 填写项目名称，点击Create
-   - 使用默认配置 `VITE_UPTIMEROBOT_API_URL = "/api/status"`
 
 ### API 代理说明
 
@@ -118,6 +113,12 @@ npm run build
    - 使用默认配置 `VITE_UPTIMEROBOT_API_URL = "/api/status"`
 
 2. 
+   **Vercel**
+   - 点击上方黑色 "Deploy" 按钮
+   - 连接到GitHub，选择项目
+   - 填写项目名称，点击Create
+   - 使用默认配置 `VITE_UPTIMEROBOT_API_URL = "/api/status"`
+   
 3. **Cloudflare Pages**
    - 点击上方橙色 "Deploy" 按钮
    - 找到计算(worker) 部分
